@@ -1,0 +1,11 @@
+diff -urN linux-3.5.orig/arch/um/os-Linux/start_up.c linux-3.5/arch/um/os-Linux/start_up.c
+--- linux-3.5.orig/arch/um/os-Linux/start_up.c	2012-07-30 15:19:59.236121469 +0200
++++ linux-3.5/arch/um/os-Linux/start_up.c	2012-07-30 15:36:06.910288563 +0200
+@@ -13,6 +13,7 @@
+ #include <signal.h>
+ #include <string.h>
+ #include <sys/mman.h>
++#include <sys/resource.h>
+ #include <sys/stat.h>
+ #include <sys/wait.h>
+ #include <asm/unistd.h>
