@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-alias bb=/bin/busybox
+alias bb=/bin/busybox-pythia
 
-echo "===[SANDBOX] Initializing..."
+echo
+echo "pythia: init"
 
 # Helper functions
 die() {

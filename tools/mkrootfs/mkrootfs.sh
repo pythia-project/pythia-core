@@ -83,7 +83,7 @@ mkdir -p "${work_dir}"/{dev,proc,sys,tmp,bin,usr/bin,task}
 # Do this now, so the configuration script can overwrite the symlinks
 msg "Symlinking busybox applets..."
 for link in $(cat "${script_dir}/busybox.links"); do
-    ln -s /bin/busybox "${work_dir}/${link}"
+    ln -s /bin/busybox-pythia "${work_dir}/${link}"
 done
 
 # Execute configuration script
@@ -96,7 +96,7 @@ if [ -n "${config_file:-}" ]; then (
 
 # Install busybox binary after the script to avoid overwriting it
 msg "Installing busybox..."
-install -m0755 "${build_dir}/busybox" "${work_dir}/bin/busybox"
+install -m0755 "${build_dir}/busybox" "${work_dir}/bin/busybox-pythia"
 
 # Remove unwanted files and folders
 msg "Removing unneeded folders..."
