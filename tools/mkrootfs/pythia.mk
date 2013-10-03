@@ -15,6 +15,13 @@
 
 MKROOTFS_BUILD_DIR := $(BUILD_DIR)/mkrootfs
 
+MKROOTFS_INIT := $(MKROOTFS_BUILD_DIR)/init
+MKROOTFS_INIT_SOURCES := $~/init.c
+
+$(MKROOTFS_INIT): $(MKROOTFS_INIT_SOURCES)
+	$(CC) -static -m32 -O3 -o $@ $*
+	strip $@
+
 BUSYBOX_CONFIG := $~/busybox.config
 BUSYBOX_VERSION := 1.21.0
 BUSYBOX_OUTPUT := $(MKROOTFS_BUILD_DIR)/busybox
@@ -30,8 +37,8 @@ MKROOTFS_DEPENDS := \
 	$~/mkrootfs.sh \
 	$~/busybox.links \
 	$~/functions.sh \
-	$~/init.sh \
-	$(BUSYBOX_OUTPUT)
+	$(MKROOTFS_INIT) \
+	$(BUSYBOX_OUTPUT) \
 MKROOTFS := $~/mkrootfs.sh -b $(MKROOTFS_BUILD_DIR)
 
 $(call add_target, busybox, BUILD, Build busybox)

@@ -133,9 +133,9 @@ master:!:1:
 worker:!:2:
 EOF
 
-# Copy init script
-msg "Installing init script..."
-install -m0755 "${script_dir}/init.sh" "${work_dir}/init"
+# Copy init program
+msg "Installing init program..."
+install -m0755 "${build_dir}/init" "${work_dir}/init"
 
 msg "Cleaning up..."
 
