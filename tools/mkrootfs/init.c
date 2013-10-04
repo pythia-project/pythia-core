@@ -182,7 +182,7 @@ static void cleanup() {
  */
 static void splitargs(char *cmd, char **argv) {
     int idx, offset;
-    char quote;
+    char quote, replacement;
 
     idx = 0;
     argv[idx] = NULL;
@@ -198,8 +198,6 @@ static void splitargs(char *cmd, char **argv) {
         switch(cmd[0]) {
         case ' ':
         case '\t':
-        case '\b':
-        case '\v':
         case '\r':
         case '\n':
             if(argv[idx] == NULL) {
@@ -235,11 +233,28 @@ static void splitargs(char *cmd, char **argv) {
             }
             break;
         case '\\':
-            if(quote == '"' && cmd[1] == '"') {
-                cmd[offset] = '"';
-                offset--;
-                cmd++;
-                break;
+            if(quote != '\'') {
+                replacement = 0;
+                switch(cmd[1]) {
+                case 'a': replacement = '\a'; break;
+                case 'b': replacement = '\b'; break;
+                case 'f': replacement = '\f'; break;
+                case 'n': replacement = '\n'; break;
+                case 'r': replacement = '\r'; break;
+                case 't': replacement = '\t'; break;
+                case 'v': replacement = '\v'; break;
+                case '\\':
+                case '\'':
+                case '"':
+                    replacement = cmd[1];
+                    break;
+                }
+                if(replacement != 0) {
+                    cmd[offset] = replacement;
+                    offset--;
+                    cmd++;
+                    break;
+                }
             }
             // else fallthrough
         default:
