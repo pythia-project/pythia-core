@@ -277,8 +277,12 @@ static FILE *fcontrol;
 
 /**
  * Launches a program and wait for it to finish.
+ *
  * If uid is not UID_MASTER, the standard input and output will be redirected
  * to /dev/null.
+ *
+ * If uid is UID_MASTER and the program exits with non-zero status (or an error
+ * occurs during the setup of the child process), the vm will be shut down.
  *
  * @param cmd the command to execute (will be modified)
  * @param uid the user id that will execute the program
@@ -295,7 +299,8 @@ static void launch(char *cmd, uid_t uid) {
     if(pid > 0) {
         // Parent
         wait(&status);
-        if(!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        if(uid == UID_MASTER &&
+                (!WIFEXITED(status) || WEXITSTATUS(status) != 0))
             shutdown();
     } else {
         // Child
