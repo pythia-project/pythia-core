@@ -299,6 +299,9 @@ static FILE *fcontrol;
  * If uid is UID_MASTER and the program exits with non-zero status (or an error
  * occurs during the setup of the child process), the vm will be shut down.
  *
+ * The umask also depends on uid. For UID_MASTER, files will be private by
+ * default. For other users, files will be public by default.
+ *
  * @param cmd the command to execute (will be modified)
  * @param uid the user id that will execute the program
  */
@@ -321,7 +324,13 @@ static void launch(char *cmd, uid_t uid) {
         // Child
         childcheck(setuid(uid));
         childcheck(fclose(fcontrol));
-        if(uid != UID_MASTER) {
+        if(uid == UID_MASTER) {
+            // Make new files private to master by default
+            umask(077);
+        } else {
+            // Make new files public by default
+            umask(000);
+            // Deny access to input and output
             if(freopen("/dev/null", "r", stdin) == NULL ||
                freopen("/dev/null", "w", stdout) == NULL ||
                freopen("/dev/null", "w", stderr) == NULL)
@@ -384,9 +393,6 @@ int main() {
     // Mount task filesystem
     check(mount("/dev/ubdb", "/task", "squashfs", MS_NODEV | MS_NOSUID | MS_RDONLY, NULL));
 
-    // Setup environment
-    // Make new files group-writable by default
-    umask(002);
     // Limit the number of processes a user may create
     rlim.rlim_max = rlim.rlim_cur = MAXPROC;
     check(setrlimit(RLIMIT_NPROC, &rlim));
