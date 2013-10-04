@@ -108,67 +108,6 @@ static inline void childcheck(int result) {
 }
 
 /**
- * Perform cleanup after executing a step.
- * The following operations are performed.
- * - Send KILL signal to all processes, except init (this program).
- * - Release all shared memory.
- * - Release all semaphores.
- * - Release all message queues.
- */
-static void cleanup() {
-    int n, i, id;
-    struct shminfo shminfo;
-    struct shmid_ds shm;
-    struct seminfo seminfo;
-    struct semid_ds sem;
-    union semun {
-        int              val;
-        struct semid_ds *buf;
-        unsigned short  *array;
-        struct seminfo  *__buf;
-    } semun;
-    struct msginfo msginfo;
-    struct msqid_ds msq;
-
-    semun.val = 0;
-
-    // Kill processes
-    kill(-1, SIGKILL);
-
-    // Release shared memory
-    n = shmctl(0, IPC_INFO, (struct shmid_ds *) &shminfo);
-    if(n < 0)
-        die();
-    for(i = 0; i <= n; i++) {
-        id = shmctl(i, SHM_STAT, &shm);
-        if(id >= 0)
-            shmctl(id, IPC_RMID, NULL);
-    }
-
-    // Release semaphores
-    semun.__buf = &seminfo;
-    n = semctl(0, 0, IPC_INFO, sem);
-    if(n < 0)
-        die();
-    semun.buf = &sem;
-    for(i = 0; i <= n; i++) {
-        id = semctl(i, 0, SEM_STAT, sem);
-        if(id >= 0)
-            semctl(id, 0, IPC_RMID, sem);
-    }
-
-    // Release message queues
-    n = msgctl(0, IPC_INFO, (struct msqid_ds *) &msginfo);
-    if(n < 0)
-        die();
-    for(i = 0; i <= n; i++) {
-        id = msgctl(i, MSG_STAT, &msq);
-        if(id >= 0)
-            msgctl(id, IPC_RMID, NULL);
-    }
-}
-
-/**
  * Split a command line into arguments.
  *
  * We try to respect shell conventions.
@@ -348,16 +287,65 @@ static void launch(char *cmd, uid_t uid) {
  */
 static void run_control() {
     char line[CONTROL_MAXLEN+1];
+    int n, i, id;
+    struct shminfo shminfo;
+    struct shmid_ds shm;
+    struct seminfo seminfo;
+    struct semid_ds sem;
+    union semun {
+        int              val;
+        struct semid_ds *buf;
+        unsigned short  *array;
+        struct seminfo  *__buf;
+    } semun;
+    struct msginfo msginfo;
+    struct msqid_ds msq;
 
     fcontrol = fopen("/task/control", "r");
     if(fcontrol == NULL)
         die();
     while(fgets(line, CONTROL_MAXLEN+1, fcontrol) != NULL) {
+        // Launch command
         if(line[0] == '!')
             launch(line + 1, UID_WORKER);
         else
             launch(line, UID_MASTER);
-        cleanup();
+
+        // Cleanup
+        // Kill processes
+        kill(-1, SIGKILL);
+
+        // Release shared memory
+        n = shmctl(0, IPC_INFO, (struct shmid_ds *) &shminfo);
+        if(n < 0)
+            die();
+        for(i = 0; i <= n; i++) {
+            id = shmctl(i, SHM_STAT, &shm);
+            if(id >= 0)
+                shmctl(id, IPC_RMID, NULL);
+        }
+
+        // Release semaphores
+        semun.__buf = &seminfo;
+        n = semctl(0, 0, IPC_INFO, sem);
+        if(n < 0)
+            die();
+        semun.buf = &sem;
+        for(i = 0; i <= n; i++) {
+            id = semctl(i, 0, SEM_STAT, sem);
+            if(id >= 0)
+                semctl(id, 0, IPC_RMID, sem);
+        }
+
+        // Release message queues
+        n = msgctl(0, IPC_INFO, (struct msqid_ds *) &msginfo);
+        if(n < 0)
+            die();
+        for(i = 0; i <= n; i++) {
+            id = msgctl(i, MSG_STAT, &msq);
+            if(id >= 0)
+                msgctl(id, IPC_RMID, NULL);
+        }
     }
 }
 
