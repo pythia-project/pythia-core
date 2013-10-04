@@ -111,7 +111,7 @@ static inline void childcheck(int result) {
  * Split a command line into arguments.
  *
  * We try to respect shell conventions.
- * - Arguments are separated by whitespace(s) [ \t\b\v\r\n].
+ * - Arguments are separated by whitespace(s).
  * - Whitespace can be enclosed by single (') or double quotes (").
  * - A double quote inside double quotes can be escaped by a backslash (\)
  *
