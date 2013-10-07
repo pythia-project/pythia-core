@@ -14,6 +14,16 @@
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
 ################################################################################
+## Global parameters
+
+# Output directory
+OUT_DIR := out
+
+# Output directory for any vm-related files
+VM_OUT_DIR := out/vm
+
+
+################################################################################
 ## Helper functions
 
 # The $~ variable contains the current subdirectory. This variable is only
@@ -61,6 +71,7 @@ all:
 
 $(call add_target, clean, GENERIC, Remove build outputs, but keep downloaded files)
 clean::
+	-rm -r $(OUT_DIR)
 
 $(call add_target, clear, GENERIC, Remove all build outputs)
 clear:: clean

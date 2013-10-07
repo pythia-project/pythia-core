@@ -13,10 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-ENVIRONMENTS_DIR := $~/build
-
-clean::
-	-rm -r $(ENVIRONMENTS_DIR)
+ENV_OUT_DIR := $(VM_OUT_DIR)
 
 # The environments target is filled by the subdirectories
 $(call add_target,environments,BUILD,Generate all environments)

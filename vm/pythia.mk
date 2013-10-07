@@ -41,7 +41,7 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 UML_CONFIG := $~/uml.config
 UML_VERSION := 3.5
 UML_PATCHES := $~/glibc2.16.patch
-UML_OUTPUT := $(VM_BUILD_DIR)/uml
+UML_OUTPUT := $(VM_OUT_DIR)/uml
 
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
 UML_TREE := $(UML_DIR)/extracted.stamp
@@ -95,9 +95,9 @@ uml_oldconfig: $(UML_TREE)
 ## Cleaning
 
 clean::
-	-rm $(VM_BUILD_DIR)
+	-rm -r $(VM_BUILD_DIR)
 
 clear::
-	-rm $(VM_CACHE_DIR)
+	-rm -r $(VM_CACHE_DIR)
 
 # vim:set ts=4 sw=4 noet:

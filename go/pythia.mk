@@ -13,26 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-export GOPATH := $(abspath $~)
+GO_DIR := $~
+export GOPATH := $(abspath $(GO_DIR))
 
-# Root pythia package name
-GO_PACKAGE := pythia
+GO_PACKAGES := pythia
 
 GO_SOURCES := $(shell find $~/src -name '*.go')
-GO_TARGETS := $(patsubst $(GOPATH)/%,$~/%, \
-					$(shell go list -f '{{.Target}}' $(GO_PACKAGE)/...))
+GO_TARGETS := $(patsubst $(GOPATH)/%,$(GO_DIR)/%, \
+			$(shell go list -f '{{.Target}}' $(addsuffix /...,$(GO_PACKAGES))))
 
 $(call add_target,go,BUILD,Build go code)
 all: go
 go: $(GO_TARGETS)
 
 $(GO_TARGETS): $(GO_SOURCES)
-	go install $(GO_PACKAGE)/...
+	go install $(addsuffix /...,$(GO_PACKAGES))
 
 clean::
 	-rm -r $(GOPATH)/bin $(GOPATH)/pkg
 
 clear::
-	-rm -r $(filter-out $(GO_PACKAGE),$(shell ls $(GOPATH)/src))
+	-rm -r $(addprefix $(GO_DIR)/src/,$(filter-out $(GO_PACKAGES),$(shell ls $(GOPATH)/src)))
 
 # vim:set ts=4 sw=4 noet:
