@@ -60,51 +60,34 @@ static inline void shutdown() {
 }
 
 /**
- * Print a log message.
+ * Print error message "fname: msg" and shut down.
+ * If msg is NULL, use perror(fname) to print the error message.
  */
-static inline void msg(const char *s) {
-    printf("%s: %s\n", LOGNAME, s);
-}
-
-/**
- * Print a log message and shut down.
- */
-static inline void msgdie(const char *s) {
-    msg(s);
-    shutdown();
-}
-
-/**
- * Print error using perror(3) and shut down.
- */
-static inline void die() {
-    perror(LOGNAME);
+static inline void die(const char *fname, const char *msg) {
+    if(msg == NULL)
+        perror(fname);
+    else
+        printf("%s: %s\n", fname, msg);
     shutdown();
 }
 
 /**
  * If result is non-zero, print error using perror(3) and shut down.
  */
-static inline void check(int result) {
+static inline void check(const char *fname, int result) {
     if(result != 0)
-        die();
-}
-
-/**
- * Print error using perror(3) and exit with non-zero status.
- */
-static inline void childdie() {
-    perror(LOGNAME);
-    exit(1);
+        die(fname, NULL);
 }
 
 /**
  * If result is non-zero, print error using perror(3) and exit with non-zero
  * status.
  */
-static inline void childcheck(int result) {
-    if(result != 0)
-        childdie();
+static inline void childcheck(const char *fname, int result) {
+    if(result != 0) {
+        perror(fname);
+        exit(1);
+    }
 }
 
 /**
@@ -206,11 +189,11 @@ static void splitargs(char *cmd, char **argv) {
         }
         cmd++;
         if(idx >= CONTROL_MAXARGS)
-            msgdie("arguments limit exceeded");
+            die("splitargs", "arguments limit exceeded");
     }
     cmd[offset] = '\0';
     if(quote != 0)
-        msgdie("unbalanced quotes");
+        die("splitargs", "unbalanced quotes");
 }
 
 /**
@@ -251,9 +234,10 @@ static void launch(char *cmd, uid_t uid) {
 
     splitargs(cmd, argv);
     pid = fork();
-    if(pid < 0)
-        die();
-    if(pid > 0) {
+    if(pid < 0) {
+        // Error
+        die("fork", NULL);
+    } else if(pid > 0) {
         // Parent
         wait(&status);
         if(uid == UID_MASTER &&
@@ -261,8 +245,8 @@ static void launch(char *cmd, uid_t uid) {
             shutdown();
     } else {
         // Child
-        childcheck(setuid(uid));
-        childcheck(fclose(fcontrol));
+        childcheck("set uid", setuid(uid));
+        childcheck("close /task/control", fclose(fcontrol));
         if(uid == UID_MASTER) {
             // Make new files private to master by default
             umask(077);
@@ -273,10 +257,10 @@ static void launch(char *cmd, uid_t uid) {
             if(freopen("/dev/null", "r", stdin) == NULL ||
                freopen("/dev/null", "w", stdout) == NULL ||
                freopen("/dev/null", "w", stderr) == NULL)
-                childdie();
+                childcheck("reopen std streams", 1);
         }
         execve(argv[0], argv, ENVIRONMENT);
-        childdie();  // if we arrive here, there was an error launching cmd.
+        childcheck("execve", 1);  // if we arrive here, there was an error launching cmd.
     }
 }
 
@@ -303,7 +287,7 @@ static void run_control() {
 
     fcontrol = fopen("/task/control", "r");
     if(fcontrol == NULL)
-        die();
+        die("open /task/control", NULL);
     while(fgets(line, CONTROL_MAXLEN+1, fcontrol) != NULL) {
         // Launch command
         if(line[0] == '!')
@@ -318,7 +302,7 @@ static void run_control() {
         // Release shared memory
         n = shmctl(0, IPC_INFO, (struct shmid_ds *) &shminfo);
         if(n < 0)
-            die();
+            die("shmctl", NULL);
         for(i = 0; i <= n; i++) {
             id = shmctl(i, SHM_STAT, &shm);
             if(id >= 0)
@@ -329,7 +313,7 @@ static void run_control() {
         semun.__buf = &seminfo;
         n = semctl(0, 0, IPC_INFO, sem);
         if(n < 0)
-            die();
+            die("semctl", NULL);
         semun.buf = &sem;
         for(i = 0; i <= n; i++) {
             id = semctl(i, 0, SEM_STAT, sem);
@@ -340,7 +324,7 @@ static void run_control() {
         // Release message queues
         n = msgctl(0, IPC_INFO, (struct msqid_ds *) &msginfo);
         if(n < 0)
-            die();
+            die("msgctl", NULL);
         for(i = 0; i <= n; i++) {
             id = msgctl(i, MSG_STAT, &msq);
             if(id >= 0)
@@ -361,7 +345,7 @@ int main() {
     struct rlimit rlim;
 
     // Print start marker
-    msg("init");
+    printf("pythia: init\n");
 
     // Parse environment variables
     disksize = getenv("disksize");
@@ -369,21 +353,21 @@ int main() {
         disksize = "50%";
     disksize_len = strlen(disksize);
     if(disksize_len > DISKSIZE_MAXLEN)
-        msgdie("disksize parameter is too long");
+        die("disksize", "parameter is too long");
     memcpy(tmpfsdata, TMPFS_PARAMS, sizeof(TMPFS_PARAMS)-1);
     memcpy(tmpfsdata+sizeof(TMPFS_PARAMS)-1, disksize, disksize_len+1);
 
     // Mount essential filesystems
-    check(mount("proc",      "/proc", "proc",     MS_NODEV | MS_NOSUID | MS_NOEXEC, NULL));
-    check(mount("sys",       "/sys",  "sysfs",    MS_NODEV | MS_NOSUID | MS_NOEXEC, NULL));
-    check(mount("none",      "/tmp",  "tmpfs",    MS_NODEV | MS_NOSUID,             tmpfsdata));
+    check("mount /proc", mount("proc",      "/proc", "proc",     MS_NODEV | MS_NOSUID | MS_NOEXEC, NULL));
+    check("mount /sys",  mount("sys",       "/sys",  "sysfs",    MS_NODEV | MS_NOSUID | MS_NOEXEC, NULL));
+    check("mount /tmp",  mount("none",      "/tmp",  "tmpfs",    MS_NODEV | MS_NOSUID,             tmpfsdata));
 
     // Mount task filesystem
-    check(mount("/dev/ubdb", "/task", "squashfs", MS_NODEV | MS_NOSUID | MS_RDONLY, NULL));
+    check("mount /task", mount("/dev/ubdb", "/task", "squashfs", MS_NODEV | MS_NOSUID | MS_RDONLY, NULL));
 
     // Limit the number of processes a user may create
     rlim.rlim_max = rlim.rlim_cur = MAXPROC;
-    check(setrlimit(RLIMIT_NPROC, &rlim));
+    check("setrlimit", setrlimit(RLIMIT_NPROC, &rlim));
 
     // Do real work
     run_control();
