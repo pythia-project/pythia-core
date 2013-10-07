@@ -311,14 +311,14 @@ static void run_control() {
 
         // Release semaphores
         semun.__buf = &seminfo;
-        n = semctl(0, 0, IPC_INFO, sem);
+        n = semctl(0, 0, IPC_INFO, semun);
         if(n < 0)
             die("semctl", NULL);
         semun.buf = &sem;
         for(i = 0; i <= n; i++) {
-            id = semctl(i, 0, SEM_STAT, sem);
+            id = semctl(i, 0, SEM_STAT, semun);
             if(id >= 0)
-                semctl(id, 0, IPC_RMID, sem);
+                semctl(id, 0, IPC_RMID, semun);
         }
 
         // Release message queues
