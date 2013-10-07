@@ -135,4 +135,4 @@ chown -RP 0:0 "${work_dir}"
 
 # Build root squashfs image
 msg "Building squashfs image..."
-mksquashfs "${work_dir}" "${out_file}" -noappend -no-xattrs -comp xz
+mksquashfs "${work_dir}" "${out_file}" -noappend -no-xattrs -comp lzo
