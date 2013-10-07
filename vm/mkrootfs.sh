@@ -23,10 +23,11 @@ fi
 # Paths
 script_dir=$(readlink -f ${0%/*})
 build_dir=${script_dir}/build
+cache_dir=${script_dir}/cache
 
 # Default values
 keep_work=false
-unset out_file config_file work_dir
+unset out_file work_dir
 
 # Helper functions
 msg() {
@@ -43,31 +44,30 @@ trap cleanup EXIT
 # Parse arguments
 usage() {
     cat <<EOF
-Usage: $0 [options] [-c SCRIPT] -o FILE
+Usage: $0 [options] -o FILE SCRIPT...
 
+  SCRIPT...        Configuration scripts to execute
   -o FILE          Set output file
-  -c SCRIPT        Execute configuration script SCRIPT
-  -b DIR           Set directory containing built artefacts
-                     (default: ${build_dir})
+  -b DIR           Set directory containing prebuilds (default: ${build_dir})
+  -c DIR           Set download cache firectory (default: ${cache_dir})
   -k               Keep temporary files
   -h               This help message
 EOF
     exit ${1}
 }
 
-while getopts 'o:c:b:kh' arg; do
+while getopts 'o:b:c:kh' arg; do
     case "${arg}" in
         o) out_file="${OPTARG}" ;;
-        c) config_file=$(readlink -f "${OPTARG}") ;;
         b) build_dir=$(readlink -f "${OPTARG}") ;;
+        c) cache_dir=$(readlink -f "${OPTARG}") ;;
         k) keep_work=true ;;
         h) usage 0 ;;
-        *)
-            err "Invalid argument '${arg}'"
-            usage 1
-            ;;
+        *) usage 1 ;;
     esac
 done
+
+shift $((OPTIND-1))
 
 if [ -z "${out_file:-}" ]; then
     err "No output file specified."
@@ -77,26 +77,16 @@ fi
 # Create work directory with base structure
 work_dir=$(mktemp -d)
 msg "Creating base rootfs structure in ${work_dir}..."
-mkdir -p "${work_dir}"/{dev,proc,sys,tmp,bin,usr/bin,task}
+mkdir -p "${work_dir}"/{dev,proc,sys,tmp,etc,bin,usr/bin,task}
 
-# Create busybox symlinks
-# Do this now, so the configuration script can overwrite the symlinks
-msg "Symlinking busybox applets..."
-for link in $(cat "${script_dir}/busybox.links"); do
-    ln -s /bin/busybox-pythia "${work_dir}/${link}"
-done
-
-# Execute configuration script
-if [ -n "${config_file:-}" ]; then (
-    msg "Executing configuration script..."
+# Execute configuration scripts
+for f in "$@"; do (
+    msg "Executing configuration script ${f}..."
+    f=$(readlink -f "${f}")
     cd "${work_dir}"
     . "${script_dir}/functions.sh"
-    . "${config_file}"
-) fi
-
-# Install busybox binary after the script to avoid overwriting it
-msg "Installing busybox..."
-install -m0755 "${build_dir}/busybox" "${work_dir}/bin/busybox-pythia"
+    . "${f}"
+) done
 
 # Remove unwanted files and folders
 msg "Removing unneeded folders..."

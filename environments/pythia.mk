@@ -13,7 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-ENVIRONMENTS_BUILD_DIR := $(BUILD_DIR)/environments
+ENVIRONMENTS_DIR := $~/build
+
+clean::
+	-rm -r $(ENVIRONMENTS_DIR)
+
+# The environments target is filled by the subdirectories
+$(call add_target,environments,BUILD,Generate all environments)
+all: environments
+environments:
 
 $(call include_subdirs, python)
 

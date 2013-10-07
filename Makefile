@@ -14,12 +14,6 @@
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
 ################################################################################
-## Global parameters
-
-BUILD_DIR := build
-
-
-################################################################################
 ## Helper functions
 
 # The $~ variable contains the current subdirectory. This variable is only
@@ -65,12 +59,11 @@ HELP_MISC_TARGETS :=
 $(call add_target, all, GENERIC, Build all targets)
 all:
 
-$(call add_target, clean, GENERIC, Remove build outputs and keep downloaded files)
+$(call add_target, clean, GENERIC, Remove build outputs, but keep downloaded files)
 clean::
 
-$(call add_target, clear, GENERIC, Remove entire build directory)
-clear:
-	-rm -r $(BUILD_DIR)
+$(call add_target, clear, GENERIC, Remove all build outputs)
+clear:: clean
 
 $(call add_target, help, MISC, Print this help)
 help:
@@ -87,7 +80,7 @@ help:
 
 
 # Include subdirectories
-$(call include_subdirs, tools vm environments)
+$(call include_subdirs, go vm environments)
 
 
 # Safeguard for not using $~ in second expansion

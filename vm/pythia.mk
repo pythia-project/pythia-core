@@ -13,16 +13,39 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-VM_BUILD_DIR := $(BUILD_DIR)/vm
+VM_BUILD_DIR := $~/build
+VM_CACHE_DIR := $~/cache
 
-UML_CONFIG := $~/config
+
+################################################################################
+## mkrootfs
+
+ROOTFS_INIT := $(VM_BUILD_DIR)/init
+ROOTFS_INIT_SOURCES := $~/init.c
+
+$(ROOTFS_INIT): $(ROOTFS_INIT_SOURCES)
+	@mkdir -p $(@D)
+	$(CC) -static -m32 -O3 -o $@ $(ROOTFS_INIT_SOURCES)
+	strip $@
+
+# Environment makefiles can use $(MKROOTFS) to call mkrootfs.
+MKROOTFS := $~/mkrootfs.sh -b $(VM_BUILD_DIR) -c $(VM_CACHE_DIR)
+
+# Targets making use of $(MKROOTFS) shall depend on $(MKROOTFS_DEPS)
+MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
+
+
+################################################################################
+## UML Kernel
+
+UML_CONFIG := $~/uml.config
 UML_VERSION := 3.5
 UML_PATCHES := $~/glibc2.16.patch
-UML_OUTPUT := $(VM_BUILD_DIR)/linux
+UML_OUTPUT := $(VM_BUILD_DIR)/uml
 
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
 UML_TREE := $(UML_DIR)/extracted.stamp
-UML_ARCHIVE := $(UML_DIR).tar.xz
+UML_ARCHIVE := $(VM_CACHE_DIR)/linux-$(UML_VERSION).tar.xz
 UML_URL := http://www.kernel.org/pub/linux/kernel/v3.x/$(notdir $(UML_ARCHIVE))
 
 UML_MAKE := $(MAKE) -C $(UML_DIR) ARCH=um SUBARCH=i386
@@ -32,6 +55,7 @@ all: uml
 uml: $(UML_OUTPUT)
 
 $(UML_OUTPUT): $(UML_CONFIG) $(UML_TREE)
+	@mkdir -p $(@D)
 	cp $(UML_CONFIG) $(UML_DIR)/.config
 	$(UML_MAKE)
 	cp $(UML_DIR)/linux $@
@@ -61,13 +85,19 @@ uml_menuconfig: $(UML_TREE)
 	cp -p $(UML_DIR)/.config $(UML_CONFIG)
 
 $(call add_target,uml_oldconfig,MISC,Upgrade UML kernel configuration)
-uml_oldconfig: checkdepends $(UML_TREE)
+uml_oldconfig: $(UML_TREE)
 	cp -p $(UML_CONFIG) $(UML_DIR)/.config
 	$(UML_MAKE) oldconfig
 	cp -p $(UML_DIR)/.config $(UML_CONFIG)
 
+
+################################################################################
+## Cleaning
+
 clean::
-	-rm -rf $(UML_DIR)
-	-rm $(UML_OUTPUT)
+	-rm $(VM_BUILD_DIR)
+
+clear::
+	-rm $(VM_CACHE_DIR)
 
 # vim:set ts=4 sw=4 noet:

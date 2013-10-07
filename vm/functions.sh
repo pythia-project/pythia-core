@@ -24,7 +24,7 @@
 
 : ${DEBIAN_MIRROR:=http://ftp.debian.org/debian}
 : ${DEBIAN_SUITE:=squeeze}
-debcache_dir=${build_dir}/debcache
+debcache_dir=${cache_dir}/debian
 
 install_debs() {
     for pkgname in "$@"; do
@@ -39,18 +39,18 @@ install_debs() {
         mkdir -p "${work_dir}/tmp/debs/${suite}"
         [ ! -e "${work_dir}/tmp/debs/${suite}/${pkgname}" ] || return 0
         # Create cache directory
-        cache=${debcache_dir}/${suite}
-        mkdir -p "${cache}"
+        mkdir -p "${debcache_dir}"
         # Download package list if needed
-        if [ ! -e "${cache}/Packages.gz" ]; then
-            wget -O "${cache}/Packages.gz" \
+        pkglist=${debcache_dir}/Packages_${suite}.gz
+        if [ ! -e "${pkglist}" ]; then
+            wget -O "${pkglist}" \
                 "${DEBIAN_MIRROR}/dists/${suite}/main/binary-i386/Packages.gz"
         fi
         # Resolve filename
-        filename=$(zcat "${cache}/Packages.gz" |
+        filename=$(zcat "${pkglist}" |
             sed -n "/^Package: ${pkgname}\$/,/^\$/ s/^Filename: \(.*\)\$/\1/p")
         basename=$(basename "$filename")
-        deb=${cache}/${basename}
+        deb=${debcache_dir}/${basename}
         # Download deb
         if [ ! -e "${deb}" ]; then
             msg "Downloading ${suite}/${basename}..."

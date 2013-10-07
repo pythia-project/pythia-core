@@ -13,22 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-MKROOTFS_BUILD_DIR := $(BUILD_DIR)/mkrootfs
+export GOPATH := $(abspath $~)
 
-MKROOTFS_INIT := $(MKROOTFS_BUILD_DIR)/init
-MKROOTFS_INIT_SOURCES := $~/init.c
+# Root pythia package name
+GO_PACKAGE := pythia
 
-$(MKROOTFS_INIT): $(MKROOTFS_INIT_SOURCES)
-	$(CC) -static -m32 -O3 -o $@ $*
-	strip $@
+GO_SOURCES := $(shell find $~/src -name '*.go')
+GO_TARGETS := $(patsubst $(GOPATH)/%,$~/%, \
+					$(shell go list -f '{{.Target}}' $(GO_PACKAGE)/...))
 
-MKROOTFS_DEPENDS := \
-	$~/mkrootfs.sh \
-	$~/functions.sh \
-	$(MKROOTFS_INIT)
-MKROOTFS := $~/mkrootfs.sh -b $(MKROOTFS_BUILD_DIR)
+$(call add_target,go,BUILD,Build go code)
+all: go
+go: $(GO_TARGETS)
+
+$(GO_TARGETS): $(GO_SOURCES)
+	go install $(GO_PACKAGE)/...
 
 clean::
-	-rm $(MKROOTFS_INIT)
+	-rm -r $(GOPATH)/bin $(GOPATH)/pkg
+
+clear::
+	-rm -r $(filter-out $(GO_PACKAGE),$(shell ls $(GOPATH)/src))
 
 # vim:set ts=4 sw=4 noet:

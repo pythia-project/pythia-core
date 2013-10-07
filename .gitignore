@@ -1,1 +1,6 @@
-/build/
+build/
+/vm/cache/
+/go/bin/
+/go/pkg/
+/go/src/*
+!/go/src/pythia/
