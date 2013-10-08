@@ -14,25 +14,25 @@
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
 GO_DIR := $~
-export GOPATH := $(abspath $(GO_DIR))
+GO := GOPATH=$(abspath $(GO_DIR)) go
 
 GO_PACKAGES := pythia
 
-GO_SOURCES := $(shell find $~/src -name '*.go')
-GO_TARGETS := $(patsubst $(GOPATH)/%,$(GO_DIR)/%, \
-			$(shell go list -f '{{.Target}}' $(addsuffix /...,$(GO_PACKAGES))))
+GO_SOURCES := $(shell find $(GO_DIR)/src -name '*.go')
+GO_TARGETS := $(patsubst $(abspath GO_DIR)/%,$(GO_DIR)/%, \
+			$(shell $(GO) list -f '{{.Target}}' $(addsuffix /...,$(GO_PACKAGES))))
 
 $(call add_target,go,BUILD,Build go code)
 all: go
 go: $(GO_TARGETS)
 
 $(GO_TARGETS): $(GO_SOURCES)
-	go install $(addsuffix /...,$(GO_PACKAGES))
+	$(GO) install $(addsuffix /...,$(GO_PACKAGES))
 
 clean::
-	-rm -r $(GOPATH)/bin $(GOPATH)/pkg
+	-rm -r $(GO_DIR)/bin $(GO_DIR)/pkg
 
 clear::
-	-rm -r $(addprefix $(GO_DIR)/src/,$(filter-out $(GO_PACKAGES),$(shell ls $(GOPATH)/src)))
+	-rm -r $(addprefix $(GO_DIR)/src/,$(filter-out $(GO_PACKAGES),$(shell ls $(GO_DIR)/src)))
 
 # vim:set ts=4 sw=4 noet:
