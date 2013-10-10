@@ -39,8 +39,8 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 ## UML Kernel
 
 UML_CONFIG := $~/uml.config
-UML_VERSION := 3.5
-UML_PATCHES := $~/glibc2.16.patch
+UML_VERSION := 3.10.5
+UML_PATCHES :=
 UML_OUTPUT := $(VM_OUT_DIR)/uml
 
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
@@ -64,7 +64,7 @@ $(UML_OUTPUT): $(UML_CONFIG) $(UML_TREE)
 # the compilation completed and it will not trigger a new extraction and
 # compilation.
 .SECONDARY: $(UML_TREE)
-$(UML_TREE): $(UML_ARCHIVE)
+$(UML_TREE): $(UML_ARCHIVE) $(UML_PATCHES)
 	@mkdir -p $(UML_DIR)
 	tar -xJ -C $(UML_DIR) -f $(UML_ARCHIVE) --strip-components=1
 	for p in $(UML_PATCHES); do \
