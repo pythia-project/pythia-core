@@ -40,7 +40,8 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 
 UML_CONFIG := $~/uml.config
 UML_VERSION := 3.10.5
-UML_PATCHES := $~/uml-001-disable-umid.patch
+UML_PATCHES := $~/uml-001-disable-umid.patch \
+               $~/uml-002-quiet-startup.patch
 UML_OUTPUT := $(VM_OUT_DIR)/uml
 
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
