@@ -344,9 +344,6 @@ int main() {
     char tmpfsdata[sizeof(TMPFS_PARAMS)+DISKSIZE_MAXLEN];
     struct rlimit rlim;
 
-    // Print start marker
-    printf("pythia: init\n");
-
     // Parse environment variables
     disksize = getenv("disksize");
     if(disksize == NULL)
