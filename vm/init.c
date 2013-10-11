@@ -369,6 +369,9 @@ int main() {
     rlim.rlim_max = rlim.rlim_cur = MAXPROC;
     check("setrlimit", setrlimit(RLIMIT_NPROC, &rlim));
 
+    // Open input file
+    check("open /dev/ubdc", freopen("/dev/ubdc", "r", stdin) == NULL);
+
     // Do real work
     run_control();
 

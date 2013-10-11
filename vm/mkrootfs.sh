@@ -108,6 +108,7 @@ urandom         c       1       9       666
 console         c       5       1       600
 ubda            b       98      0       400
 ubdb            b       98      16      400
+ubdc            b       98      32      400
 EOF
 
 # Create users
