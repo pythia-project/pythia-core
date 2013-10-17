@@ -1,0 +1,51 @@
+#!/bin/sh
+# Copyright 2013 The Pythia Authors.
+# This file is part of Pythia.
+#
+# Pythia is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# Pythia is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
+
+# Pre-commit sanity checks:
+# - All Go files must be formatted with gofmt.
+# - No whitespace errors.
+
+set -e -u
+
+IFS='
+'
+
+errors=
+unformatted=
+for f in $(git diff --cached --name-only --diff-filter=ACM | grep '\.go$'); do
+    rc=0
+    output=$(git cat-file -p ":$f" | gofmt -l 2>&1) || rc=$?
+    if [ ${rc} -ne 0 ]; then
+        output=$(printf '%s' "${output}" | sed "s|<standard input>|${f}|")
+        errors=$(printf '%s\n    %s' "${errors}" "${output}")
+    elif [ -n "${output}" ]; then
+        unformatted=$(printf '%s\n    %s' "${unformatted}" "${f}")
+    fi
+done
+
+rc=0
+if [ -n "${errors}" ]; then
+    printf "gofmt found syntax errors:"
+    printf '%s\n' "${errors}"
+    rc=1
+fi
+if [ -n "${unformatted}" ]; then
+    printf "gofmt needs to format these files (run gofmt -w and git add):"
+    printf '%s\n' "${unformatted}"
+    rc=1
+fi
+git diff --check --cached || rc=1
+exit ${rc}
