@@ -27,7 +27,9 @@ import (
 	"path"
 	"pythia"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 )
 
 // A Job is the combination of a task and an input.
@@ -47,22 +49,40 @@ type Job struct {
 
 	// Path to the directory containing the tasks
 	TasksDir string
+
+	// Process id of the job sandbox
+	pid int
+
+	// Job output
+	output string
+
+	// Has a timeout or overflow occurred?
+	timeout, overflow bool
+
+	// Error occurring in a goroutine
+	err error
+
+	// Barrier to wait for all goroutines associated to a job execution to end.
+	wg sync.WaitGroup
 }
 
 // Execute the job in a sandbox, wait for it to complete (or time out), and
 // return the result.
 func (job *Job) Execute() (status pythia.Status, output string) {
-	// BUG(vianney): Not all limits are currently enforced during job execution.
+	// Write input to a temporary file. This is needed because UML has trouble
+	// reading on the standard input. Hence, we feed the input as a block
+	// device.
 	inputfile, err := ioutil.TempFile("", "pythia")
 	if err != nil {
-		return pythia.Crash, fmt.Sprint(err)
+		return pythia.Error, fmt.Sprint(err)
 	}
 	defer os.Remove(inputfile.Name())
 	defer inputfile.Close()
 	if _, err := io.WriteString(inputfile, job.Input); err != nil {
-		return pythia.Crash, fmt.Sprint(err)
+		return pythia.Error, fmt.Sprint(err)
 	}
 	inputfile.Close()
+	// Create and configure command.
 	cmd := exec.Command(job.UmlPath,
 		fmt.Sprintf("ubd0r=%s.sfs", path.Join(job.EnvDir, job.Task.Environment)),
 		fmt.Sprintf("ubd1r=%s", path.Join(job.TasksDir, job.Task.TaskFS)),
@@ -74,11 +94,93 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 		fmt.Sprintf("mem=%dm", job.Task.Limits.Memory),
 		fmt.Sprintf("disksize=%d%%", job.Task.Limits.Disk))
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-	out, err := cmd.Output()
+	cmd.Stdin = nil
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return pythia.Crash, fmt.Sprint(err)
+		return pythia.Error, fmt.Sprint(err)
 	}
-	return pythia.Success, strings.Replace(string(out), "\r\n", "\n", -1)
+	cmd.Stderr = cmd.Stdout
+	// Run the VM
+	kill, done := make(chan bool, 1), make(chan bool, 1)
+	if err := cmd.Start(); err != nil {
+		return pythia.Error, fmt.Sprint(err)
+	}
+	job.pid = cmd.Process.Pid
+	job.wg.Add(2)
+	go job.gatherOutput(stdout, kill)
+	go job.watch(kill, done)
+	if err := cmd.Wait(); err != nil {
+		switch err := err.(type) {
+		case *exec.ExitError:
+			// Ignore this error, cmd.ProcessState will be read below.
+		default:
+			job.err = err
+		}
+	}
+	done <- true
+	job.wg.Wait()
+	// Return result
+	switch {
+	case job.err != nil:
+		return pythia.Error, fmt.Sprint(job.err)
+	case job.overflow:
+		return pythia.Overflow, job.output
+	case job.timeout:
+		return pythia.Timeout, job.output
+	case !cmd.ProcessState.Success():
+		return pythia.Crash, job.output
+	default:
+		return pythia.Success, job.output
+	}
+}
+
+// GatherOutput is a goroutine that buffers the output of the job.
+// If the size of the output exceeds the limit set in the task, the job will be
+// killed by signaling on the kill channel.
+func (job *Job) gatherOutput(stdout io.Reader, kill chan<- bool) {
+	defer job.wg.Done()
+	// Make buffer one byte larger than the limit to catch overflows.
+	buffer := make([]byte, job.Task.Limits.Output+1)
+	read := 0
+	for {
+		n, err := stdout.Read(buffer[read:])
+		read += n
+		if err != nil && err != io.EOF {
+			job.err = err
+			kill <- true
+			break
+		} else if read > job.Task.Limits.Output {
+			job.overflow = true
+			kill <- true
+			break
+		} else if err == io.EOF {
+			break
+		}
+	}
+	if read > job.Task.Limits.Output {
+		read = job.Task.Limits.Output
+	}
+	job.output = strings.Replace(string(buffer[:read]), "\r\n", "\n", -1)
+}
+
+// Kill kills the sandbox. We send the KILL signal to the whole process group.
+func (job *Job) kill() {
+	syscall.Kill(-job.pid, syscall.SIGKILL)
+}
+
+// Watch is a goroutine responsible for killing the job when it times out or
+// when a signal is received on the kill channel. A signal on the done channel
+// means the job has exited and nothing has to be done anymore.
+func (job *Job) watch(kill, done <-chan bool) {
+	defer job.wg.Done()
+	select {
+	case <-time.After(time.Duration(job.Task.Limits.Time) * time.Second):
+		job.timeout = true
+		job.kill()
+	case <-kill:
+		job.kill()
+	case <-done:
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
