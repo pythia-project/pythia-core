@@ -38,18 +38,18 @@ type Task struct {
 	// Execution limits to be enforced in the sandbox.
 	Limits struct {
 		// Maximum execution time in seconds.
-		Time uint `json:"time"`
+		Time int `json:"time"`
 
 		// Total amount of main memory (in megabytes) allocated
 		// to the sandbox VM.
-		Memory uint `json:"memory"`
+		Memory int `json:"memory"`
 
 		// Fraction (in percents) of main memory that can be used as disk space
 		// in a tmpfs. Note that only used disk space is allocated.
-		Disk uint `json:"disk"`
+		Disk int `json:"disk"`
 
-		// Maximum size of the output (in characters).
-		Output uint `json:"output"`
+		// Maximum size of the output (in bytes).
+		Output int `json:"output"`
 	} `json:"limits"`
 }
 
