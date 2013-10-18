@@ -62,3 +62,16 @@ install_debs() {
         touch "${work_dir}/tmp/debs/${suite}/${pkgname}"
     done
 }
+
+
+## install_busybox
+##
+## Install busybox and create symlinks for programs that do not exist yet.
+
+install_busybox() {
+    mkdir -p "${work_dir}"/{,usr/}bin
+    install -m0755 "${build_dir}/busybox" "${work_dir}/bin/busybox"
+    while read link; do
+        [ -e "${work_dir}/${link}" ] || ln -s /bin/busybox "${work_dir}/${link}"
+    done <"${script_dir}/busybox.links"
+}

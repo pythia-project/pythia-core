@@ -93,6 +93,58 @@ uml_oldconfig: $(UML_TREE)
 
 
 ################################################################################
+## Busybox
+
+# Note: environment targets including busybox shall depend on $(BUSYBOX)
+
+BUSYBOX_CONFIG := $~/busybox.config
+BUSYBOX_VERSION := 1.21.1
+BUSYBOX := $(VM_BUILD_DIR)/busybox
+
+BUSYBOX_DIR := $(VM_BUILD_DIR)/busybox-$(BUSYBOX_VERSION)
+BUSYBOX_TREE := $(BUSYBOX_DIR)/extracted.stamp
+BUSYBOX_ARCHIVE := $(VM_CACHE_DIR)/busybox-$(BUSYBOX_VERSION).tar.bz2
+BUSYBOX_URL := http://busybox.net/downloads/$(notdir $(BUSYBOX_ARCHIVE))
+
+BUSYBOX_MAKE := $(MAKE) -C $(BUSYBOX_DIR) CC="$(CC) -m32" HOSTCC="$(CC) -m32"
+
+$(call add_target,busybox,BUILD,Build busybox)
+busybox: $(BUSYBOX)
+
+$(BUSYBOX): $(BUSYBOX_CONFIG) $(BUSYBOX_TREE)
+	cp $(BUSYBOX_CONFIG) $(BUSYBOX_DIR)/.config
+	$(BUSYBOX_MAKE)
+	cp $(BUSYBOX_DIR)/busybox $@
+
+# The busybox build directory is secondary, so we can manually remove it after
+# the compilation completed and it will not trigger a new extraction and
+# compilation.
+.SECONDARY: $(BUSYBOX_TREE)
+$(BUSYBOX_TREE): $(BUSYBOX_ARCHIVE)
+	@mkdir -p $(BUSYBOX_DIR)
+	tar -xj -C $(BUSYBOX_DIR) -f $(BUSYBOX_ARCHIVE) --strip-components=1
+	touch $@
+
+$(BUSYBOX_ARCHIVE):
+	@mkdir -p $(@D)
+	wget -O $@ $(BUSYBOX_URL)
+
+$(call add_target,busybox_menuconfig,MISC,Configure busybox)
+busybox_menuconfig: $(BUSYBOX_TREE)
+	[ -e $(BUSYBOX_CONFIG) ] \
+		&& cp -p $(BUSYBOX_CONFIG) $(BUSYBOX_DIR)/.config \
+		|| $(BUSYBOX_MAKE) defconfig
+	$(BUSYBOX_MAKE) menuconfig
+	cp -p $(BUSYBOX_DIR)/.config $(BUSYBOX_CONFIG)
+
+$(call add_target,busybox_oldconfig,MISC,Upgrade busybox configuration)
+busybox_oldconfig: $(BUSYBOX_TREE)
+	cp -p $(BUSYBOX_CONFIG) $(BUSYBOX_DIR)/.config
+	$(BUSYBOX_MAKE) oldconfig
+	cp -p $(BUSYBOX_DIR)/.config $(BUSYBOX_CONFIG)
+
+
+################################################################################
 ## Cleaning
 
 clean::
