@@ -77,6 +77,8 @@ fi
 # Create work directory with base structure
 work_dir=$(mktemp -d)
 msg "Creating base rootfs structure in ${work_dir}..."
+chmod 0755 "${work_dir}"
+umask 022
 mkdir -p "${work_dir}"/{dev,proc,sys,tmp,etc,bin,usr/bin,task}
 
 # Execute configuration scripts
