@@ -17,12 +17,14 @@ package backend
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"pythia"
 	"strings"
 	"syscall"
@@ -36,6 +38,15 @@ import (
 type Job struct {
 	Task  pythia.Task
 	Input string
+
+	// Path to the UML executable
+	UmlPath string
+
+	// Path to the directory containing the environments
+	EnvDir string
+
+	// Path to the directory containing the tasks
+	TasksDir string
 }
 
 // Execute the job in a sandbox, wait for it to complete (or time out), and
@@ -52,9 +63,9 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 		return pythia.Crash, fmt.Sprint(err)
 	}
 	inputfile.Close()
-	cmd := exec.Command("vm/uml",
-		fmt.Sprintf("ubd0r=vm/%s.sfs", job.Task.Environment),
-		fmt.Sprintf("ubd1r=%s", job.Task.TaskFS),
+	cmd := exec.Command(job.UmlPath,
+		fmt.Sprintf("ubd0r=%s.sfs", path.Join(job.EnvDir, job.Task.Environment)),
+		fmt.Sprintf("ubd1r=%s", path.Join(job.TasksDir, job.Task.TaskFS)),
 		fmt.Sprintf("ubd2r=%s", inputfile.Name()),
 		"con0=null,fd:1",
 		"init=/init",
@@ -75,10 +86,17 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 
 // Setup the parameters with the command line flags in args.
 func (job *Job) Setup(args []string) {
-	if len(args) != 2 {
+	fs := flag.NewFlagSet(os.Args[0]+" execute", flag.ExitOnError)
+	fs.StringVar(&job.UmlPath, "uml", "vm/uml", "path to the UML executable")
+	fs.StringVar(&job.EnvDir, "envdir", "vm", "environments directory")
+	fs.StringVar(&job.TasksDir, "tasksdir", "tasks", "tasks directory")
+	if err := fs.Parse(args); err != nil {
+		log.Fatal(err)
+	}
+	if len(fs.Args()) != 2 {
 		log.Fatal("Usage: ", os.Args[0], " execute TASK INPUT")
 	}
-	taskfile, inputfile := args[0], args[1]
+	taskfile, inputfile := fs.Arg(0), fs.Arg(1)
 	taskcontent, err := ioutil.ReadFile(taskfile)
 	if err != nil {
 		log.Fatal(err)
