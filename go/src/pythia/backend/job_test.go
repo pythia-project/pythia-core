@@ -16,46 +16,20 @@
 package backend
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
-	"path"
 	"pythia"
 	"strings"
 	"testing"
 	"time"
 )
 
-// Environment variables exported from make
-var (
-	topDir   = os.Getenv("TOP_DIR")
-	outDir   = path.Join(topDir, os.Getenv("OUT_DIR"))
-	umlPath  = path.Join(topDir, os.Getenv("UML"))
-	vmDir    = path.Join(topDir, os.Getenv("VM_OUT_DIR"))
-	tasksDir = path.Join(topDir, os.Getenv("TASKS_OUT_DIR"))
-)
-
-// ReadTask reads a task description from a file.
-func readTask(basename string) (*pythia.Task, error) {
-	content, err := ioutil.ReadFile(path.Join(tasksDir, basename+".task"))
-	if err != nil {
-		return nil, err
-	}
-	task := new(pythia.Task)
-	if json.Unmarshal(content, task) != nil {
-		return nil, err
-	}
-	return task, nil
-}
-
 // NewJob creates a job, configured with the paths exported from make.
 func newJob(task *pythia.Task, input string) Job {
 	return Job{
 		Task:     *task,
 		Input:    input,
-		UmlPath:  umlPath,
-		EnvDir:   vmDir,
-		TasksDir: tasksDir,
+		UmlPath:  UmlPath,
+		EnvDir:   VmDir,
+		TasksDir: TasksDir,
 	}
 }
 
@@ -83,10 +57,10 @@ func runTask(t *testing.T, task *pythia.Task, input string, status pythia.Status
 	return elapsed
 }
 
-// Shortcut for runTask(t, readTask(basename), ...)
+// Shortcut for runTask(t, ReadTask(basename), ...)
 func run(t *testing.T, basename string, input string, status pythia.Status,
 	output string) time.Duration {
-	task, err := readTask(basename)
+	task, err := ReadTask(basename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,18 +68,18 @@ func run(t *testing.T, basename string, input string, status pythia.Status,
 }
 
 // Basic hello world task.
-func TestHelloWorld(t *testing.T) {
+func TestJobHelloWorld(t *testing.T) {
 	run(t, "hello-world", "", pythia.Success, "Hello world!")
 }
 
 // Hello world task with input.
-func TestHelloInput(t *testing.T) {
+func TestJobHelloInput(t *testing.T) {
 	run(t, "hello-input", "me\npythia\n",
 		pythia.Success, "Hello me!\nHello pythia!\n")
 }
 
 // This task should time out after 5 seconds.
-func TestTimeout(t *testing.T) {
+func TestJobTimeout(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping timeout test in short mode")
 	}
@@ -113,8 +87,8 @@ func TestTimeout(t *testing.T) {
 }
 
 // This task should overflow the output buffer.
-func TestOverflow(t *testing.T) {
-	task, err := readTask("overflow")
+func TestJobOverflow(t *testing.T) {
+	task, err := ReadTask("overflow")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +110,7 @@ func TestOverflow(t *testing.T) {
 }
 
 // This task should overflow and be killed before the end.
-func TestOverflowKill(t *testing.T) {
+func TestJobOverflowKill(t *testing.T) {
 	elapsed := run(t, "overflow-kill", "", pythia.Overflow, "abcde")
 	if elapsed.Seconds() > 2 {
 		t.Errorf("Task took too long: %s.", elapsed.String())
@@ -144,7 +118,7 @@ func TestOverflowKill(t *testing.T) {
 }
 
 // This task is a fork bomb. It should succeed, but not take the whole time.
-func TestForkbomb(t *testing.T) {
+func TestJobForkbomb(t *testing.T) {
 	elapsed := run(t, "forkbomb", "", pythia.Success, "Start\nDone")
 	if elapsed.Seconds() > 2 {
 		t.Errorf("Task took too long: %s.", elapsed.String())
@@ -152,7 +126,7 @@ func TestForkbomb(t *testing.T) {
 }
 
 // Flooding the disk should not have any adverse effect.
-func TestFlooddisk(t *testing.T) {
+func TestJobFlooddisk(t *testing.T) {
 	run(t, "flooddisk", "", pythia.Success, "Start\nDone")
 }
 
