@@ -42,6 +42,11 @@ clean::
 clear::
 	-rm -r $(addprefix $(GO_DIR)/src/,$(filter-out $(GO_PACKAGES),$(shell ls $(GO_DIR)/src)))
 
+$(call add_target,gotest,MISC,Run Go tests)
+check: gotest
+gotest: $$(ENV_BUSYBOX) $$(TASKS)
+	$(GO) test $(addsuffix /...,$(GO_PACKAGES))
+
 $(call add_target,godoc,MISC,Launch godoc server on port 6060)
 godoc:
 	$(GO)doc -http=localhost:6060 &

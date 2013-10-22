@@ -17,10 +17,10 @@
 ## Global parameters
 
 # Output directory
-OUT_DIR := out
+export OUT_DIR := out
 
 # Output directory for any vm-related files
-VM_OUT_DIR := out/vm
+export VM_OUT_DIR := out/vm
 
 
 ################################################################################
@@ -29,6 +29,9 @@ VM_OUT_DIR := out/vm
 # Enable secondary expansion
 
 .SECONDEXPANSION:
+
+# Absolute path to this root directory
+export TOP_DIR := $(abspath .)
 
 # The $~ variable contains the current subdirectory. This variable is only
 # valid on first expansion.
@@ -72,6 +75,9 @@ HELP_MISC_TARGETS :=
 
 $(call add_target, all, GENERIC, Build all targets)
 all:
+
+$(call add_target, check, GENERIC, Perform all tests)
+check:
 
 $(call add_target, clean, GENERIC, Remove build outputs, but keep downloaded files)
 clean::

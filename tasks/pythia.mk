@@ -14,14 +14,14 @@
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
 TASKS_DIR := $~
-TASKS_OUT_DIR := $(OUT_DIR)/tasks
+export TASKS_OUT_DIR := $(OUT_DIR)/tasks
 
-TASKS := $(basename $(notdir $(wildcard $(TASKS_DIR)/*.task)))
-TASKS_OUTPUT := $(foreach t,$(TASKS),$(TASKS_OUT_DIR)/$(t).task $(TASKS_OUT_DIR)/$(t).sfs)
+TASKS_BASE := $(basename $(notdir $(wildcard $(TASKS_DIR)/*.task)))
+TASKS := $(foreach t,$(TASKS_BASE),$(TASKS_OUT_DIR)/$(t).task $(TASKS_OUT_DIR)/$(t).sfs)
 
 $(call add_target,tasks,BUILD,Generate test tasks)
 all: tasks
-tasks: $(TASKS_OUTPUT)
+tasks: $(TASKS)
 
 $(TASKS_OUT_DIR)/%.task: $(TASKS_DIR)/%.task
 	@mkdir -p $(@D)

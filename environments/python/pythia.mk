@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-ENV_PYTHON_OUTPUT := $(ENV_OUT_DIR)/python.sfs
+ENV_PYTHON := $(ENV_OUT_DIR)/python.sfs
 
-environments: $(ENV_PYTHON_OUTPUT)
+environments: $(ENV_PYTHON)
 
-$(ENV_PYTHON_OUTPUT): $~/rootfs-config.sh $(MKROOTFS_DEPS)
+$(ENV_PYTHON): $~/rootfs-config.sh $(MKROOTFS_DEPS)
 	@mkdir -p $(@D)
 	$(MKROOTFS) -o $@ $<
 

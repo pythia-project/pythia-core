@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Pythia.  If not, see <http://www.gnu.org/licenses/>.
 
-ENV_BUSYBOX_OUTPUT := $(ENV_OUT_DIR)/busybox.sfs
+ENV_BUSYBOX := $(ENV_OUT_DIR)/busybox.sfs
 
-environments: $(ENV_BUSYBOX_OUTPUT)
+environments: $(ENV_BUSYBOX)
 
-$(ENV_BUSYBOX_OUTPUT): $~/rootfs-config.sh $(MKROOTFS_DEPS) $(BUSYBOX)
+$(ENV_BUSYBOX): $~/rootfs-config.sh $(MKROOTFS_DEPS) $(BUSYBOX)
 	@mkdir -p $(@D)
 	$(MKROOTFS) -o $@ $<
 

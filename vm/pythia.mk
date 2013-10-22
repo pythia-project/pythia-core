@@ -42,7 +42,7 @@ UML_CONFIG := $~/uml.config
 UML_VERSION := 3.10.5
 UML_PATCHES := $~/uml-001-disable-umid.patch \
                $~/uml-002-quiet-startup.patch
-UML_OUTPUT := $(VM_OUT_DIR)/uml
+export UML := $(VM_OUT_DIR)/uml
 
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
 UML_TREE := $(UML_DIR)/extracted.stamp
@@ -53,9 +53,9 @@ UML_MAKE := $(MAKE) -C $(UML_DIR) ARCH=um SUBARCH=i386
 
 $(call add_target,uml,BUILD,Build UML kernel)
 all: uml
-uml: $(UML_OUTPUT)
+uml: $(UML)
 
-$(UML_OUTPUT): $(UML_CONFIG) $(UML_TREE)
+$(UML): $(UML_CONFIG) $(UML_TREE)
 	@mkdir -p $(@D)
 	cp $(UML_CONFIG) $(UML_DIR)/.config
 	$(UML_MAKE)
