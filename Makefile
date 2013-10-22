@@ -26,6 +26,10 @@ VM_OUT_DIR := out/vm
 ################################################################################
 ## Helper functions
 
+# Enable secondary expansion
+
+.SECONDEXPANSION:
+
 # The $~ variable contains the current subdirectory. This variable is only
 # valid on first expansion.
 
@@ -91,7 +95,7 @@ help:
 
 
 # Include subdirectories
-$(call include_subdirs, go vm environments)
+$(call include_subdirs, go vm environments tasks)
 
 
 # Safeguard for not using $~ in second expansion
