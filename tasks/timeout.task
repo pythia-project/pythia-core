@@ -1,0 +1,10 @@
+{
+  "environment": "busybox",
+  "taskfs": "timeout.sfs",
+  "limits": {
+    "time": 5,
+    "memory": 32,
+    "disk": 50,
+    "output": 1024
+  }
+}
