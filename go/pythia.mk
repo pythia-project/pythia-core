@@ -15,7 +15,8 @@
 
 GO_DIR := $~
 GO_BINDIR := $(GO_DIR)/bin
-GO := GOPATH=$(abspath $(GO_DIR)) go
+export GOPATH := $(abspath $(GO_DIR))
+GO := GOPATH=$(GOPATH) go
 
 GO_PACKAGES := pythia
 GO_INSTALL_BINARIES := pythia
@@ -41,6 +42,10 @@ clean::
 
 clear::
 	-rm -r $(addprefix $(GO_DIR)/src/,$(filter-out $(GO_PACKAGES),$(shell ls $(GO_DIR)/src)))
+
+$(call add_target,go_env,MISC,Print Go environment variables)
+go_env:
+	@$(foreach var,GOPATH TOP_DIR UML VM_OUT_DIR TASKS_OUT_DIR,printf 'export %s="%s"\n' $(var) $($(var));)
 
 $(call add_target,gotest,MISC,Run Go tests)
 check: gotest
