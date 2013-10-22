@@ -21,6 +21,9 @@ import (
 	"os"
 	"path"
 	"pythia"
+	"reflect"
+	"testing"
+	"time"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,6 +49,65 @@ func ReadTask(basename string) (*pythia.Task, error) {
 		return nil, err
 	}
 	return task, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Fixtures
+
+// ConnFixture is the base fixture for connection-based tests.
+type ConnFixture struct {
+	T    *testing.T
+	Conn *pythia.Conn
+}
+
+// Send a message through the connection.
+func (f *ConnFixture) Send(msg pythia.Message) {
+	f.T.Log(">>", msg)
+	f.Conn.Send(msg)
+}
+
+// Read len(expected) messages from the connection. Fail if a message was not in
+// the expected set (order does not matter) or an expected message was not
+// received. If nothing is received for more than timeout seconds, fail and
+// continue.
+func (f *ConnFixture) Expect(timeout int, expected ...pythia.Message) {
+	ok := make([]bool, len(expected))
+	for i := 0; i < len(expected); i++ {
+		select {
+		case msg := <-f.Conn.Receive():
+			found := false
+			for i, m := range expected {
+				if !ok[i] && reflect.DeepEqual(msg, m) {
+					f.T.Log("<<", msg)
+					ok[i] = true
+					found = true
+					break
+				}
+			}
+			if !found {
+				f.T.Error("<<(unexpected)", msg)
+			}
+		case <-time.After(time.Duration(timeout) * time.Second):
+			f.T.Error("<< timed out")
+			break
+		}
+	}
+	for i, msg := range expected {
+		if !ok[i] {
+			f.T.Error("<<(missing)", msg)
+		}
+	}
+}
+
+// Check for an unexpected message waiting in the input channel and close the
+// connection.
+func (f *ConnFixture) TearDown() {
+	select {
+	case msg := <-f.Conn.Receive():
+		f.T.Error("<<(unexpected)", msg)
+	default:
+	}
+	f.Conn.Close()
 }
 
 // vim:set sw=4 ts=4 noet:

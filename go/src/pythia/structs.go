@@ -15,6 +15,10 @@
 
 package pythia
 
+import (
+	"encoding/json"
+)
+
 // Status of a task execution.
 type Status string
 
@@ -51,6 +55,69 @@ type Task struct {
 		// Maximum size of the output (in bytes).
 		Output int `json:"output"`
 	} `json:"limits"`
+}
+
+func (task Task) String() string {
+	s, err := json.Marshal(task)
+	if err != nil {
+		return "<" + err.Error() + ">"
+	}
+	return string(s)
+}
+
+// Message type.
+type MsgType string
+
+const (
+	// Register a sandbox pool.
+	// Pool->Queue
+	RegisterPoolMsg MsgType = "register-pool"
+
+	// Request execution of a task.
+	// Frontend->Queue, Queue->Pool
+	LaunchMsg = "launch"
+
+	// Job done.
+	// Pool->Queue, Queue->Frontend.
+	DoneMsg = "done"
+
+	// Abort job. The receiving end shall send a done message with status abort
+	// (or another status if the job has ended meanwhile).
+	// Frontend->Queue, Queue->Pool
+	AbortMsg = "abort"
+)
+
+// A Message is the basic entity that is sent between components. Messages are
+// serialized to JSON.
+type Message struct {
+	// The message.
+	Message MsgType `json:"message"`
+
+	// The capacity of the pool. Only for message register-pool.
+	Capacity int `json:"capacity,omitempty"`
+
+	// The task identifier. Only for messages launch, done and abort.
+	Id string `json:"id,omitempty"`
+
+	// The task to launch. Only for message launch.
+	Task *Task `json:"task,omitempty"`
+
+	// The input to feed to the task. Only for message launch.
+	Input string `json:"input,omitempty"`
+
+	// The result status of the execution. Only for message done.
+	Status Status `json:"status,omitempty"`
+
+	// The result output of the execution. Only for message done.
+	Output string `json:"output,omitempty"`
+}
+
+func (msg Message) String() string {
+	s, err := json.Marshal(msg)
+	if err != nil {
+		return "<" + err.Error() + ">"
+	}
+	return string(s)
 }
 
 // vim:set sw=4 ts=4 noet:

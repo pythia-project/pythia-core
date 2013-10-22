@@ -37,6 +37,8 @@ func main() {
 	switch name {
 	case "execute":
 		component = new(backend.Job)
+	case "pool":
+		component = new(backend.Pool)
 	default:
 		fmt.Println("Unknown component", name)
 		usage()
