@@ -72,7 +72,7 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 	// Write input to a temporary file. This is needed because UML has trouble
 	// reading on the standard input. Hence, we feed the input as a block
 	// device.
-	inputfile, err := ioutil.TempFile("", "pythia")
+	inputfile, err := ioutil.TempFile("", "pythia-input-")
 	if err != nil {
 		return pythia.Error, fmt.Sprint(err)
 	}
