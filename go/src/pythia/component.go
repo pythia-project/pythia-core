@@ -24,6 +24,9 @@ type Component interface {
 
 	// Execute the component.
 	Run()
+
+	// Shut down the component.
+	Shutdown()
 }
 
 // vim:set sw=4 ts=4 noet:

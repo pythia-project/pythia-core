@@ -106,6 +106,9 @@ func (pool *Pool) Run() {
 			log.Println("Ignoring message", msg.Message)
 		}
 	}
+	// BUG(vianney): Abort remaining jobs in Pool after the connection has
+	// closed.
+	// BUG(vianney): Reconnect Pool to Queue automatically.
 }
 
 // DoJob executes a job and sends the result to the queue.
@@ -125,6 +128,11 @@ func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
 		Status:  status,
 		Output:  output,
 	})
+}
+
+// Shut down the Pool component.
+func (pool *Pool) Shutdown() {
+	pool.conn.Close()
 }
 
 // vim:set sw=4 ts=4 noet:

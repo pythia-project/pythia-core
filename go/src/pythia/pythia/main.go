@@ -19,8 +19,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"pythia"
 	"pythia/backend"
+	"syscall"
 )
 
 func usage() {
@@ -44,7 +46,17 @@ func main() {
 		usage()
 	}
 	component.Setup(args)
+	terminate, done := make(chan os.Signal, 1), make(chan bool, 1)
+	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-terminate:
+			component.Shutdown()
+		case <-done:
+		}
+	}()
 	component.Run()
+	done <- true
 }
 
 // vim:set sw=4 ts=4 noet:

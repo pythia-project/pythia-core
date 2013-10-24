@@ -249,4 +249,9 @@ func (job *Job) Run() {
 	fmt.Println("Output:", output)
 }
 
+// Abort the job if it is still running.
+func (job *Job) Shutdown() {
+	job.Abort()
+}
+
 // vim:set sw=4 ts=4 noet:
