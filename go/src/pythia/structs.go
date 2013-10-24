@@ -24,11 +24,11 @@ type Status string
 
 const (
 	Success  Status = "success"  // finished, output = stdout
-	Timeout         = "timeout"  // timed out, output = stdout so far
-	Overflow        = "overflow" // stdout too big, output = capped stdout
-	Abort           = "abort"    // aborted by abort message, no output
-	Crash           = "crash"    // sandbox crashed, output = stdout + exit code
-	Error           = "error"    // unrecoverable error (e.g. misformatted task), output = error message
+	Timeout  Status = "timeout"  // timed out, output = stdout so far
+	Overflow Status = "overflow" // stdout too big, output = capped stdout
+	Abort    Status = "abort"    // aborted by abort message, no output
+	Crash    Status = "crash"    // sandbox crashed, output = stdout + exit code
+	Error    Status = "error"    // unrecoverable error (e.g. misformatted task), output = error message
 )
 
 // Task is the description of a task to be run in a sandbox.
@@ -75,16 +75,16 @@ const (
 
 	// Request execution of a task.
 	// Frontend->Queue, Queue->Pool
-	LaunchMsg = "launch"
+	LaunchMsg MsgType = "launch"
 
 	// Job done.
 	// Pool->Queue, Queue->Frontend.
-	DoneMsg = "done"
+	DoneMsg MsgType = "done"
 
 	// Abort job. The receiving end shall send a done message with status abort
 	// (or another status if the job has ended meanwhile).
 	// Frontend->Queue, Queue->Pool
-	AbortMsg = "abort"
+	AbortMsg MsgType = "abort"
 )
 
 // A Message is the basic entity that is sent between components. Messages are
