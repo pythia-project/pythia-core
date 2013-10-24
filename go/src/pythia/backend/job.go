@@ -56,8 +56,11 @@ type Job struct {
 	// Job output
 	output string
 
-	// Has a timeout or overflow occurred?
-	timeout, overflow bool
+	// Send a signal to the interrupt channel to trigger job killing.
+	interrupt chan bool
+
+	// Has the job timed out, overflowed, or been aborted?
+	timeout, overflow, abort bool
 
 	// Error occurring in a goroutine
 	err error
@@ -101,14 +104,14 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 	}
 	cmd.Stderr = cmd.Stdout
 	// Run the VM
-	kill, done := make(chan bool, 1), make(chan bool, 1)
 	if err := cmd.Start(); err != nil {
 		return pythia.Error, fmt.Sprint(err)
 	}
 	job.pid = cmd.Process.Pid
+	job.interrupt = make(chan bool)
 	job.wg.Add(2)
-	go job.gatherOutput(stdout, kill)
-	go job.watch(kill, done)
+	go job.watch()
+	go job.gatherOutput(stdout)
 	if err := cmd.Wait(); err != nil {
 		switch err := err.(type) {
 		case *exec.ExitError:
@@ -117,12 +120,14 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 			job.err = err
 		}
 	}
-	done <- true
+	job.kill()
 	job.wg.Wait()
 	// Return result
 	switch {
 	case job.err != nil:
 		return pythia.Error, fmt.Sprint(job.err)
+	case job.abort:
+		return pythia.Abort, job.output
 	case job.overflow:
 		return pythia.Overflow, job.output
 	case job.timeout:
@@ -134,10 +139,16 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 	}
 }
 
+// Abort aborts the execution of the job.
+func (job *Job) Abort() {
+	job.abort = true
+	job.kill()
+}
+
 // GatherOutput is a goroutine that buffers the output of the job.
 // If the size of the output exceeds the limit set in the task, the job will be
-// killed by signaling on the kill channel.
-func (job *Job) gatherOutput(stdout io.Reader, kill chan<- bool) {
+// killed.
+func (job *Job) gatherOutput(stdout io.Reader) {
 	defer job.wg.Done()
 	// Make buffer one byte larger than the limit to catch overflows.
 	buffer := make([]byte, job.Task.Limits.Output+1)
@@ -147,11 +158,11 @@ func (job *Job) gatherOutput(stdout io.Reader, kill chan<- bool) {
 		read += n
 		if err != nil && err != io.EOF {
 			job.err = err
-			kill <- true
+			job.kill()
 			break
 		} else if read > job.Task.Limits.Output {
 			job.overflow = true
-			kill <- true
+			job.kill()
 			break
 		} else if err == io.EOF {
 			break
@@ -163,24 +174,31 @@ func (job *Job) gatherOutput(stdout io.Reader, kill chan<- bool) {
 	job.output = strings.Replace(string(buffer[:read]), "\r\n", "\n", -1)
 }
 
-// Kill kills the sandbox. We send the KILL signal to the whole process group.
+// Kill requests the sandbox to be killed. It is a convenience method to send
+// a signal on the job.interrupt channel, but do not block if the job has
+// already finished.
+//
+// Note: if kill() is called before the watch() goroutine is ready, the kill
+// request will be silently ignored.
 func (job *Job) kill() {
-	syscall.Kill(-job.pid, syscall.SIGKILL)
+	select {
+	case job.interrupt <- true:
+	default:
+	}
 }
 
 // Watch is a goroutine responsible for killing the job when it times out or
-// when a signal is received on the kill channel. A signal on the done channel
-// means the job has exited and nothing has to be done anymore.
-func (job *Job) watch(kill, done <-chan bool) {
+// when a signal is received on the job.interrupt channel.
+func (job *Job) watch() {
 	defer job.wg.Done()
 	select {
 	case <-time.After(time.Duration(job.Task.Limits.Time) * time.Second):
 		job.timeout = true
-		job.kill()
-	case <-kill:
-		job.kill()
-	case <-done:
+	case <-job.interrupt:
 	}
+	// Send the KILL signal to the whole UML process group. Do this even when
+	// the job is already done to ensure no zombie processes are left.
+	syscall.Kill(-job.pid, syscall.SIGKILL)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

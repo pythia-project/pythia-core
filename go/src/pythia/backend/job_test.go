@@ -127,4 +127,25 @@ func TestJobFlooddisk(t *testing.T) {
 	run(t, "flooddisk", "", pythia.Success, "Start\nDone\n")
 }
 
+// Aborting a job shall be immediate.
+func TestJobAbort(t *testing.T) {
+	task, err := ReadTask("timeout")
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := newJob(task, "")
+	done := make(chan bool)
+	go func() {
+		wd := Watchdog(t, 2)
+		status, output := job.Execute()
+		wd.Stop()
+		Expect(t, "status", pythia.Abort, status)
+		Expect(t, "output", "Start\n", output)
+		done <- true
+	}()
+	time.Sleep(1 * time.Second)
+	job.Abort()
+	<-done
+}
+
 // vim:set sw=4 ts=4 noet:
