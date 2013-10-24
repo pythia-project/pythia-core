@@ -52,6 +52,21 @@ func ReadTask(basename string) (*pythia.Task, error) {
 	return task, nil
 }
 
+// Expect generates an error if expected and actual are not deeply equal.
+func Expect(t *testing.T, name string, expected, actual interface{}) {
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Expected %s `%v`, got `%v`.", name, expected, actual)
+	}
+}
+
+// Watchdog starts a timer that generates an error after seconds seconds, unless
+// cancelled by its Stop method.
+func Watchdog(t *testing.T, seconds int) *time.Timer {
+	return time.AfterFunc(time.Duration(seconds)*time.Second, func() {
+		t.Errorf("Time exceeded (%ds).", seconds)
+	})
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // TestConn
 
