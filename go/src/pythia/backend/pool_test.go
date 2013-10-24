@@ -26,13 +26,14 @@ import (
 
 // PoolFixture contains the common elements for pool tests.
 type PoolFixture struct {
-	ConnFixture
-
 	// Mock queue component
 	Queue *pythia.Listener
 
 	// Pool component
 	Pool *Pool
+
+	// Queue->Pool connection
+	Conn *TestConn
 }
 
 // Setup an environment for testing the Pool component.
@@ -41,7 +42,6 @@ type PoolFixture struct {
 func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	var err error
 	f := new(PoolFixture)
-	f.T = t
 	// Setup mock queue
 	t.Log("Setup queue")
 	addr, err := pythia.LocalAddr()
@@ -63,13 +63,14 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	go f.Pool.Run()
 	// Establish connection
 	t.Log("Establish connection")
-	f.Conn, err = f.Queue.Accept()
+	conn, err := f.Queue.Accept()
 	if err != nil {
 		f.Queue.Close()
 		t.Fatal(err)
 	}
+	f.Conn = &TestConn{t, conn}
 	// Wait for register-pool message
-	f.Expect(2, pythia.Message{
+	f.Conn.Expect(2, pythia.Message{
 		Message:  pythia.RegisterPoolMsg,
 		Capacity: capacity,
 	})
@@ -79,7 +80,7 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 // TearDown tears down the fixture, closing the connections and shutting down
 // the components.
 func (f *PoolFixture) TearDown() {
-	f.ConnFixture.TearDown()
+	f.Conn.Close()
 	f.Queue.Close()
 }
 
@@ -97,13 +98,13 @@ func TestPoolHelloWorld(t *testing.T) {
 		t.Fatal(err)
 	}
 	f := SetupPoolFixture(t, 1)
-	f.Send(pythia.Message{
+	f.Conn.Send(pythia.Message{
 		Message: pythia.LaunchMsg,
 		Id:      "hello",
 		Task:    task,
 		Input:   "",
 	})
-	f.Expect(5, pythia.Message{
+	f.Conn.Expect(5, pythia.Message{
 		Message: pythia.DoneMsg,
 		Id:      "hello",
 		Status:  pythia.Success,
@@ -123,19 +124,19 @@ func TestPoolExceedCapacity(t *testing.T) {
 	task.Limits.Time = 5
 	f := SetupPoolFixture(t, 2)
 	for i := 1; i <= 3; i++ {
-		f.Send(pythia.Message{
+		f.Conn.Send(pythia.Message{
 			Message: pythia.LaunchMsg,
 			Id:      fmt.Sprint(i),
 			Task:    task,
 		})
 	}
-	f.Expect(2, pythia.Message{
+	f.Conn.Expect(2, pythia.Message{
 		Message: pythia.DoneMsg,
 		Id:      "3",
 		Status:  pythia.Error,
 		Output:  "Pool capacity exceeded",
 	})
-	f.Expect(6, pythia.Message{
+	f.Conn.Expect(6, pythia.Message{
 		Message: pythia.DoneMsg,
 		Id:      "1",
 		Status:  pythia.Timeout,

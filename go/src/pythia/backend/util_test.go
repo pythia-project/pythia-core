@@ -18,6 +18,7 @@ package backend
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
 	"pythia"
@@ -52,62 +53,72 @@ func ReadTask(basename string) (*pythia.Task, error) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Fixtures
+// TestConn
 
-// ConnFixture is the base fixture for connection-based tests.
-type ConnFixture struct {
+// A TestConn is a wrapper around pythia.Conn to log connection messages and
+// check received messages.
+type TestConn struct {
 	T    *testing.T
 	Conn *pythia.Conn
 }
 
-// Send a message through the connection.
-func (f *ConnFixture) Send(msg pythia.Message) {
-	f.T.Log(">>", msg)
-	f.Conn.Send(msg)
+// DialTest establishes a test connection.
+func DialTest(t *testing.T, addr net.Addr) (*TestConn, error) {
+	conn, err := pythia.Dial(addr)
+	if err != nil {
+		return nil, err
+	}
+	return &TestConn{t, conn}, nil
 }
 
-// Read len(expected) messages from the connection. Fail if a message was not in
-// the expected set (order does not matter) or an expected message was not
-// received. If nothing is received for more than timeout seconds, fail and
-// continue.
-func (f *ConnFixture) Expect(timeout int, expected ...pythia.Message) {
+// Send sends a message through the connection.
+func (c *TestConn) Send(msg pythia.Message) {
+	c.T.Log(">>", msg)
+	c.Conn.Send(msg)
+}
+
+// Expect reads len(expected) messages from the connection.
+// Fail if a message was not in the expected set (order does not matter) or an
+// expected message was not received.
+// If nothing is received for more than timeout seconds, fail and continue.
+func (c *TestConn) Expect(timeout int, expected ...pythia.Message) {
 	ok := make([]bool, len(expected))
 	for i := 0; i < len(expected); i++ {
 		select {
-		case msg := <-f.Conn.Receive():
+		case msg := <-c.Conn.Receive():
 			found := false
 			for i, m := range expected {
 				if !ok[i] && reflect.DeepEqual(msg, m) {
-					f.T.Log("<<", msg)
+					c.T.Log("<<", msg)
 					ok[i] = true
 					found = true
 					break
 				}
 			}
 			if !found {
-				f.T.Error("<<(unexpected)", msg)
+				c.T.Error("<<(unexpected)", msg)
 			}
 		case <-time.After(time.Duration(timeout) * time.Second):
-			f.T.Error("<< timed out")
+			c.T.Error("<< timed out")
 			break
 		}
 	}
 	for i, msg := range expected {
 		if !ok[i] {
-			f.T.Error("<<(missing)", msg)
+			c.T.Error("<<(missing)", msg)
 		}
 	}
 }
 
 // Check for an unexpected message waiting in the input channel and close the
 // connection.
-func (f *ConnFixture) TearDown() {
+func (c *TestConn) Close() {
 	select {
-	case msg := <-f.Conn.Receive():
-		f.T.Error("<<(unexpected)", msg)
+	case msg := <-c.Conn.Receive():
+		c.T.Error("<<(unexpected)", msg)
 	default:
 	}
-	f.Conn.Close()
+	c.Conn.Close()
 }
 
 // vim:set sw=4 ts=4 noet:
