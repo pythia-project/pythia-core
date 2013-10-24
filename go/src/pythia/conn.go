@@ -22,6 +22,9 @@ import (
 	"net"
 )
 
+// BUG(vianney): When a connection is closed from the remote side, the writer
+// goroutine of pythia.Conn will remain running.
+
 // Conn is a wrapper over net.Conn, reading and writing Messages.
 type Conn struct {
 	// The underlying connection.
