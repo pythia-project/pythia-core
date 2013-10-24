@@ -36,7 +36,7 @@ func main() {
 	var component pythia.Component
 	switch name {
 	case "execute":
-		component = new(backend.Job)
+		component = backend.NewJob()
 	case "pool":
 		component = new(backend.Pool)
 	default:

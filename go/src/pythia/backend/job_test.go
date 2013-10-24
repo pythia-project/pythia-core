@@ -21,22 +21,22 @@ import (
 	"time"
 )
 
-// NewJob creates a job, configured with the paths exported from make.
-func newJob(task *pythia.Task, input string) Job {
-	return Job{
-		Task:     *task,
-		Input:    input,
-		UmlPath:  UmlPath,
-		EnvDir:   VmDir,
-		TasksDir: TasksDir,
-	}
+// NewTestJob creates a job, configured with the paths exported from make.
+func newTestJob(task *pythia.Task, input string) *Job {
+	job := NewJob()
+	job.Task = *task
+	job.Input = input
+	job.UmlPath = UmlPath
+	job.EnvDir = VmDir
+	job.TasksDir = TasksDir
+	return job
 }
 
 // RunTask executes task with input.
 // It checks that the execution time and output length are within the specified
 // limits.
 func runTask(t *testing.T, task *pythia.Task, input string) (status pythia.Status, output string) {
-	job := newJob(task, input)
+	job := newTestJob(task, input)
 	wd := Watchdog(t, task.Limits.Time+1)
 	status, output = job.Execute()
 	wd.Stop()
@@ -133,7 +133,7 @@ func TestJobAbort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := newJob(task, "")
+	job := newTestJob(task, "")
 	done := make(chan bool)
 	go func() {
 		wd := Watchdog(t, 2)

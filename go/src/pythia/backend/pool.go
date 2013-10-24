@@ -112,13 +112,12 @@ func (pool *Pool) Run() {
 // This function is meant to be run in its own goroutine, as it will block
 // until the end of the job execution.
 func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
-	job := Job{
-		Task:     *task,
-		Input:    input,
-		UmlPath:  pool.UmlPath,
-		EnvDir:   pool.EnvDir,
-		TasksDir: pool.TasksDir,
-	}
+	job := NewJob()
+	job.Task = *task
+	job.Input = input
+	job.UmlPath = pool.UmlPath
+	job.EnvDir = pool.EnvDir
+	job.TasksDir = pool.TasksDir
 	status, output := job.Execute()
 	pool.conn.Send(pythia.Message{
 		Message: pythia.DoneMsg,

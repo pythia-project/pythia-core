@@ -35,6 +35,8 @@ import (
 // A Job is the combination of a task and an input.
 // Jobs are executed inside a sandbox.
 //
+// New jobs shall be created with the NewJob function.
+//
 // The Job type implements the pythia.Component interface so that a job can
 // be launched from the CLI for debugging purposes.
 type Job struct {
@@ -67,6 +69,19 @@ type Job struct {
 
 	// Barrier to wait for all goroutines associated to a job execution to end.
 	wg sync.WaitGroup
+}
+
+// NewJob returns a new job, filled with default parameters. To execute the
+// job, Task and Input have to be filled, and Execute() called.
+func NewJob() *Job {
+	job := new(Job)
+	job.UmlPath = "vm/uml"
+	job.EnvDir = "vm"
+	job.TasksDir = "tasks"
+	// The interrupt channel is buffered to avoid missing a kill request
+	// arriving before the watch goroutine is ready.
+	job.interrupt = make(chan bool, 1)
+	return job
 }
 
 // Execute the job in a sandbox, wait for it to complete (or time out), and
@@ -108,7 +123,6 @@ func (job *Job) Execute() (status pythia.Status, output string) {
 		return pythia.Error, fmt.Sprint(err)
 	}
 	job.pid = cmd.Process.Pid
-	job.interrupt = make(chan bool)
 	job.wg.Add(2)
 	go job.watch()
 	go job.gatherOutput(stdout)
@@ -177,9 +191,6 @@ func (job *Job) gatherOutput(stdout io.Reader) {
 // Kill requests the sandbox to be killed. It is a convenience method to send
 // a signal on the job.interrupt channel, but do not block if the job has
 // already finished.
-//
-// Note: if kill() is called before the watch() goroutine is ready, the kill
-// request will be silently ignored.
 func (job *Job) kill() {
 	select {
 	case job.interrupt <- true:
@@ -207,9 +218,9 @@ func (job *Job) watch() {
 // Setup the parameters with the command line flags in args.
 func (job *Job) Setup(args []string) {
 	fs := flag.NewFlagSet(os.Args[0]+" execute", flag.ExitOnError)
-	fs.StringVar(&job.UmlPath, "uml", "vm/uml", "path to the UML executable")
-	fs.StringVar(&job.EnvDir, "envdir", "vm", "environments directory")
-	fs.StringVar(&job.TasksDir, "tasksdir", "tasks", "tasks directory")
+	fs.StringVar(&job.UmlPath, "uml", job.UmlPath, "path to the UML executable")
+	fs.StringVar(&job.EnvDir, "envdir", job.EnvDir, "environments directory")
+	fs.StringVar(&job.TasksDir, "tasksdir", job.TasksDir, "tasks directory")
 	if err := fs.Parse(args); err != nil {
 		log.Fatal(err)
 	}
