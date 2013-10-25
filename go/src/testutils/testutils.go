@@ -18,6 +18,7 @@ package testutils
 
 import (
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -35,6 +36,25 @@ func Watchdog(t *testing.T, seconds int) *time.Timer {
 	return time.AfterFunc(time.Duration(seconds)*time.Second, func() {
 		t.Errorf("Time exceeded (%ds).", seconds)
 	})
+}
+
+// CheckGoroutine runs f and checks that there are no zombie goroutines left.
+//
+// Because, the runtime may create some goroutines, f is run multiple times.
+// A goroutine leak should then also appear multiple times.
+func CheckGoroutines(t *testing.T, f func()) {
+	const n = 3
+	before := runtime.NumGoroutine()
+	for i := 0; i < n; i++ {
+		f()
+	}
+	// Let goroutines die by themselves
+	runtime.Gosched()
+	time.Sleep(10 * time.Millisecond)
+	leak := (runtime.NumGoroutine() - before) / n
+	if leak >= 1 {
+		t.Errorf("%d zombie goroutine(s) detected.", leak)
+	}
 }
 
 // vim:set sw=4 ts=4 noet:

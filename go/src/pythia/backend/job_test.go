@@ -69,6 +69,13 @@ func TestJobHelloWorld(t *testing.T) {
 	run(t, "hello-world", "", pythia.Success, "Hello world!\n")
 }
 
+// Check that the goroutines are cleaned correctly.
+func TestJobCleanup(t *testing.T) {
+	testutils.CheckGoroutines(t, func() {
+		run(t, "hello-world", "", pythia.Success, "Hello world!\n")
+	})
+}
+
 // Hello world task with input.
 func TestJobHelloInput(t *testing.T) {
 	run(t, "hello-input", "me\npythia\n",

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"pythia"
 	"testing"
+	"testutils"
 	"testutils/pytest"
 )
 
@@ -89,8 +90,10 @@ func (f *PoolFixture) TearDown() {
 // Tests
 
 func TestPoolNoop(t *testing.T) {
-	f := SetupPoolFixture(t, 1)
-	f.TearDown()
+	testutils.CheckGoroutines(t, func() {
+		f := SetupPoolFixture(t, 1)
+		f.TearDown()
+	})
 }
 
 func TestPoolHelloWorld(t *testing.T) {
