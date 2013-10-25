@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"pythia"
 	"testing"
+	"testutils/pytest"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +34,7 @@ type PoolFixture struct {
 	Pool *Pool
 
 	// Queue->Pool connection
-	Conn *TestConn
+	Conn *pytest.Conn
 }
 
 // Setup an environment for testing the Pool component.
@@ -57,9 +58,9 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	f.Pool = new(Pool)
 	f.Pool.QueueAddr = addr
 	f.Pool.Capacity = capacity
-	f.Pool.UmlPath = UmlPath
-	f.Pool.EnvDir = VmDir
-	f.Pool.TasksDir = TasksDir
+	f.Pool.UmlPath = pytest.UmlPath
+	f.Pool.EnvDir = pytest.VmDir
+	f.Pool.TasksDir = pytest.TasksDir
 	go f.Pool.Run()
 	// Establish connection
 	t.Log("Establish connection")
@@ -68,7 +69,7 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 		f.Queue.Close()
 		t.Fatal(err)
 	}
-	f.Conn = &TestConn{t, conn}
+	f.Conn = &pytest.Conn{t, conn}
 	// Wait for register-pool message
 	f.Conn.Expect(2, pythia.Message{
 		Message:  pythia.RegisterPoolMsg,
@@ -93,15 +94,12 @@ func TestPoolNoop(t *testing.T) {
 }
 
 func TestPoolHelloWorld(t *testing.T) {
-	task, err := ReadTask("hello-world")
-	if err != nil {
-		t.Fatal(err)
-	}
+	task := pytest.ReadTask(t, "hello-world")
 	f := SetupPoolFixture(t, 1)
 	f.Conn.Send(pythia.Message{
 		Message: pythia.LaunchMsg,
 		Id:      "hello",
-		Task:    task,
+		Task:    &task,
 		Input:   "",
 	})
 	f.Conn.Expect(5, pythia.Message{
@@ -117,17 +115,14 @@ func TestPoolExceedCapacity(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping timeout test in short mode")
 	}
-	task, err := ReadTask("timeout")
-	if err != nil {
-		t.Fatal(err)
-	}
+	task := pytest.ReadTask(t, "timeout")
 	task.Limits.Time = 5
 	f := SetupPoolFixture(t, 2)
 	for i := 1; i <= 3; i++ {
 		f.Conn.Send(pythia.Message{
 			Message: pythia.LaunchMsg,
 			Id:      fmt.Sprint(i),
-			Task:    task,
+			Task:    &task,
 		})
 	}
 	f.Conn.Expect(2, pythia.Message{

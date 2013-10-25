@@ -18,7 +18,7 @@ GO_BINDIR := $(GO_DIR)/bin
 export GOPATH := $(abspath $(GO_DIR))
 GO := GOPATH=$(GOPATH) go
 
-GO_PACKAGES := pythia
+GO_PACKAGES := pythia testutils
 GO_INSTALL_BINARIES := pythia
 
 GO_SOURCES := $(shell find $(GO_DIR)/src -name '*.go')
