@@ -30,8 +30,8 @@ type Conn struct {
 	// The underlying connection.
 	conn net.Conn
 
-	// Message channels.
-	input, output chan Message
+	// Incoming messages channel.
+	input chan Message
 
 	// Flag to ignore errors after closing the connection.
 	closed bool
@@ -42,9 +42,8 @@ type Conn struct {
 func WrapConn(conn net.Conn) *Conn {
 	c := new(Conn)
 	c.conn = conn
-	c.input, c.output = make(chan Message), make(chan Message)
+	c.input = make(chan Message)
 	go c.reader()
-	go c.writer()
 	return c
 }
 
@@ -57,20 +56,9 @@ func (c *Conn) reader() {
 		if err := dec.Decode(&msg); err == io.EOF || c.closed {
 			break
 		} else if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 		c.input <- msg
-	}
-}
-
-// The writer goroutine fetches Messages from the output channel and sends them
-// through the network connection.
-func (c *Conn) writer() {
-	enc := json.NewEncoder(c.conn)
-	for msg := range c.output {
-		if err := enc.Encode(msg); err != nil {
-			log.Fatal(err)
-		}
 	}
 }
 
@@ -84,11 +72,9 @@ func Dial(addr net.Addr) (*Conn, error) {
 }
 
 // Send sends a message through the connection.
-func (c *Conn) Send(msg Message) {
-	if c.closed {
-		log.Fatal("Try to write message on closed connection.")
-	}
-	c.output <- msg
+func (c *Conn) Send(msg Message) error {
+	enc := json.NewEncoder(c.conn)
+	return enc.Encode(msg)
 }
 
 // Receive returns the channel from which incoming messages can be retrieved.
@@ -97,12 +83,9 @@ func (c *Conn) Receive() <-chan Message {
 }
 
 // Close closes the connection. The receive channel will also be closed.
-func (c *Conn) Close() {
+func (c *Conn) Close() error {
 	c.closed = true
-	close(c.output)
-	if err := c.conn.Close(); err != nil {
-		log.Fatal(err)
-	}
+	return c.conn.Close()
 }
 
 // vim:set sw=4 ts=4 noet:
