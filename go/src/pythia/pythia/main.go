@@ -40,7 +40,7 @@ func main() {
 	case "execute":
 		component = backend.NewJob()
 	case "pool":
-		component = new(backend.Pool)
+		component = backend.NewPool()
 	default:
 		fmt.Println("Unknown component", name)
 		usage()

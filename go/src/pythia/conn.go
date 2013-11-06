@@ -17,6 +17,7 @@ package pythia
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -73,6 +74,9 @@ func Dial(addr net.Addr) (*Conn, error) {
 
 // Send sends a message through the connection.
 func (c *Conn) Send(msg Message) error {
+	if c.closed {
+		return errors.New("Connection closed")
+	}
 	enc := json.NewEncoder(c.conn)
 	return enc.Encode(msg)
 }
@@ -83,7 +87,11 @@ func (c *Conn) Receive() <-chan Message {
 }
 
 // Close closes the connection. The receive channel will also be closed.
+// Further sends will cause errors.
 func (c *Conn) Close() error {
+	if c.closed {
+		return nil
+	}
 	c.closed = true
 	return c.conn.Close()
 }

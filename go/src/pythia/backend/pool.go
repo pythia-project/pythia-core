@@ -21,10 +21,13 @@ import (
 	"net"
 	"os"
 	"pythia"
+	"sync"
 )
 
 // A Pool is a component that launches sandboxes on the local machine.
 // Each Pool has a limit on the number of sandboxes that can run concurrently.
+//
+// New pools shall be created by the NewPool function.
 //
 // A Pool connects to the Queue, advertises its limits, and waits for jobs to
 // execute.
@@ -46,16 +49,34 @@ type Pool struct {
 
 	// Connection to the queue
 	conn *pythia.Conn
+
+	// Channel to request shutdown
+	quit chan bool
+
+	// Channel to abort all remaining jobs
+	abort chan bool
+}
+
+// NewPool returns a new pool with default parameters.
+func NewPool() *Pool {
+	pool := new(Pool)
+	pool.QueueAddr, _ = pythia.ParseAddr("127.0.0.1:9000")
+	pool.Capacity = 1
+	pool.UmlPath = "vm/uml"
+	pool.EnvDir = "vm"
+	pool.TasksDir = "tasks"
+	pool.quit = make(chan bool, 1)
+	return pool
 }
 
 // Setup the parameters with the command line flags in args.
 func (pool *Pool) Setup(args []string) {
 	fs := flag.NewFlagSet(os.Args[0]+" pool", flag.ExitOnError)
-	queue := fs.String("queue", "127.0.0.1:9000", "queue address")
-	fs.IntVar(&pool.Capacity, "capacity", 1, "max parallel sandboxes")
-	fs.StringVar(&pool.UmlPath, "uml", "vm/uml", "path to the UML executable")
-	fs.StringVar(&pool.EnvDir, "envdir", "vm", "environments directory")
-	fs.StringVar(&pool.TasksDir, "tasksdir", "tasks", "tasks directory")
+	queue := fs.String("queue", pool.QueueAddr.String(), "queue address")
+	fs.IntVar(&pool.Capacity, "capacity", pool.Capacity, "max parallel sandboxes")
+	fs.StringVar(&pool.UmlPath, "uml", pool.UmlPath, "path to the UML executable")
+	fs.StringVar(&pool.EnvDir, "envdir", pool.EnvDir, "environments directory")
+	fs.StringVar(&pool.TasksDir, "tasksdir", pool.TasksDir, "tasks directory")
 	if err := fs.Parse(args); err != nil {
 		log.Fatal(err)
 	}
@@ -80,34 +101,48 @@ func (pool *Pool) Run() {
 	for i := 0; i < pool.Capacity; i++ {
 		tokens <- true
 	}
+	pool.abort = make(chan bool, 1)
+	var wg sync.WaitGroup
 	conn.Send(pythia.Message{
 		Message:  pythia.RegisterPoolMsg,
 		Capacity: pool.Capacity,
 	})
-	for msg := range conn.Receive() {
-		switch msg.Message {
-		case pythia.LaunchMsg:
-			select {
-			case <-tokens:
-				go func(msg pythia.Message) {
-					pool.doJob(msg.Id, msg.Task, msg.Input)
-					tokens <- true
-				}(msg)
-			default:
-				log.Println("Capacity exceeded, cannot handle job.")
-				conn.Send(pythia.Message{
-					Message: pythia.DoneMsg,
-					Id:      msg.Id,
-					Status:  pythia.Error,
-					Output:  "Pool capacity exceeded",
-				})
+mainloop:
+	for {
+		select {
+		case msg, ok := <-conn.Receive():
+			if !ok {
+				break mainloop
 			}
-		default:
-			log.Println("Ignoring message", msg.Message)
+			switch msg.Message {
+			case pythia.LaunchMsg:
+				select {
+				case <-tokens:
+					wg.Add(1)
+					go func(msg pythia.Message) {
+						pool.doJob(msg.Id, msg.Task, msg.Input)
+						tokens <- true
+						wg.Done()
+					}(msg)
+				default:
+					log.Println("Capacity exceeded, cannot handle job.")
+					conn.Send(pythia.Message{
+						Message: pythia.DoneMsg,
+						Id:      msg.Id,
+						Status:  pythia.Error,
+						Output:  "Pool capacity exceeded",
+					})
+				}
+			default:
+				log.Println("Ignoring message", msg.Message)
+			}
+		case <-pool.quit:
+			break mainloop
 		}
 	}
-	// BUG(vianney): Abort remaining jobs in Pool after the connection has
-	// closed.
+	conn.Close()
+	pool.abort <- true
+	wg.Wait()
 	// BUG(vianney): Reconnect Pool to Queue automatically.
 }
 
@@ -121,18 +156,32 @@ func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
 	job.UmlPath = pool.UmlPath
 	job.EnvDir = pool.EnvDir
 	job.TasksDir = pool.TasksDir
-	status, output := job.Execute()
-	pool.conn.Send(pythia.Message{
-		Message: pythia.DoneMsg,
-		Id:      id,
-		Status:  status,
-		Output:  output,
-	})
+	done := make(chan bool)
+	go func() {
+		status, output := job.Execute()
+		pool.conn.Send(pythia.Message{
+			Message: pythia.DoneMsg,
+			Id:      id,
+			Status:  status,
+			Output:  output,
+		})
+		done <- true
+	}()
+	select {
+	case <-pool.abort:
+		pool.abort <- true
+		job.Abort()
+		<-done
+	case <-done:
+	}
 }
 
 // Shut down the Pool component.
 func (pool *Pool) Shutdown() {
-	pool.conn.Close()
+	select {
+	case pool.quit <- true:
+	default:
+	}
 }
 
 // vim:set sw=4 ts=4 noet:

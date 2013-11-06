@@ -56,7 +56,7 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	}
 	// Setup pool
 	t.Log("Setup pool")
-	f.Pool = new(Pool)
+	f.Pool = NewPool()
 	f.Pool.QueueAddr = addr
 	f.Pool.Capacity = capacity
 	f.Pool.UmlPath = pytest.UmlPath
