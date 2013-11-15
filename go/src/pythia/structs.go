@@ -66,6 +66,7 @@ func (task Task) String() string {
 }
 
 // Message type.
+// Components may have internal message types starting with a hyphen.
 type MsgType string
 
 const (

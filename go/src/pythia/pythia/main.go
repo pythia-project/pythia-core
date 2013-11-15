@@ -41,6 +41,8 @@ func main() {
 		component = backend.NewJob()
 	case "pool":
 		component = backend.NewPool()
+	case "queue":
+		component = backend.NewQueue()
 	default:
 		fmt.Println("Unknown component", name)
 		usage()
