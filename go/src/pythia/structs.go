@@ -70,6 +70,9 @@ func (task Task) String() string {
 type MsgType string
 
 const (
+	// Internal message for keeping a connection alive.
+	KeepAliveMsg MsgType = "keep-alive"
+
 	// Register a sandbox pool.
 	// Pool->Queue
 	RegisterPoolMsg MsgType = "register-pool"
