@@ -24,15 +24,6 @@ import (
 	"time"
 )
 
-const (
-	// Duration between two keep-alive messages sent.
-	keepAlivePeriod = 30 * time.Second
-
-	// Duration after which the connection is considered closed if no message
-	// has been received.
-	readTimeout = 3 * keepAlivePeriod
-)
-
 // Error to return if the connection was closed
 var closedError = errors.New("Connection closed")
 
@@ -80,7 +71,12 @@ func (c *Conn) reader() {
 	defer close(c.input)
 	dec := json.NewDecoder(c.conn)
 	for {
-		c.conn.SetReadDeadline(time.Now().Add(readTimeout))
+		// Note: As a keep-alive message is sent only when no message has been
+		// transmitted during the previous interval, it is possible that no
+		// message gets transmitted for nearly 2 intervals. To take this into
+		// account (plus some safety margin), we set the read timeout to
+		// 3 intervals.
+		c.conn.SetReadDeadline(time.Now().Add(3 * KeepAliveInterval))
 		var msg Message
 		err := dec.Decode(&msg)
 		if c.closed {
@@ -103,7 +99,7 @@ func (c *Conn) reader() {
 
 // The writer goroutine sends Messages and keep-alives
 func (c *Conn) writer() {
-	keepAliveTicker := time.NewTicker(keepAlivePeriod)
+	keepAliveTicker := time.NewTicker(KeepAliveInterval)
 	defer keepAliveTicker.Stop()
 	sendKeepAlive := true
 	enc := json.NewEncoder(c.conn)
