@@ -39,6 +39,11 @@ func Dial(t *testing.T, addr net.Addr) (*Conn, error) {
 	return &Conn{t, conn}, nil
 }
 
+// DialRetry establishes a test connection, retrying indefinitely.
+func DialRetry(t *testing.T, addr net.Addr) *Conn {
+	return &Conn{t, pythia.DialRetry(addr)}
+}
+
 // Send sends a message through the connection.
 func (c *Conn) Send(msg pythia.Message) {
 	c.T.Log(">>", msg)

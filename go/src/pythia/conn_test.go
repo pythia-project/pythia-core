@@ -123,4 +123,26 @@ func TestConnKeepAliveClose(t *testing.T) {
 	})
 }
 
+// Test DialRetry
+func TestConnDialRetry(t *testing.T) {
+	addr, err := LocalAddr()
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := make(chan bool)
+	go func() {
+		conn := DialRetry(addr)
+		conn.Close()
+		c <- true
+	}()
+	time.Sleep(50 * time.Millisecond)
+	l, err := net.Listen(addr.Network(), addr.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+	l.Accept()
+	<-c
+}
+
 // vim:set sw=4 ts=4 noet:

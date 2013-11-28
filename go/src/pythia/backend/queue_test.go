@@ -20,7 +20,6 @@ import (
 	"testing"
 	"testutils"
 	"testutils/pytest"
-	"time"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,17 +49,11 @@ func SetupQueueFixture(t *testing.T, capacity int, clients int) *QueueFixture {
 	}
 	f.Queue.ListenAddr = addr
 	go f.Queue.Run()
-	time.Sleep(50 * time.Millisecond)
 	// Setup clients
 	t.Log("Setup initial clients")
 	f.Clients = make([]*pytest.Conn, clients)
 	for i := 0; i < clients; i++ {
-		conn, err := pytest.Dial(t, addr)
-		if err != nil {
-			f.Queue.Shutdown()
-			t.Fatal(err)
-		}
-		f.Clients[i] = conn
+		f.Clients[i] = pytest.DialRetry(t, addr)
 	}
 	return f
 }

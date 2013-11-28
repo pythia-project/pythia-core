@@ -133,6 +133,24 @@ func Dial(addr net.Addr) (*Conn, error) {
 	return WrapConn(conn), nil
 }
 
+// DialRetry is equivalent to Dial, but it keeps on retrying (with exponential
+// back-off) until the connection is established.
+func DialRetry(addr net.Addr) *Conn {
+	interval := InitialRetryInterval
+	for {
+		conn, err := Dial(addr)
+		if err == nil {
+			return conn
+		}
+		log.Print("Connection failed (", err, "), retrying in ", interval)
+		time.Sleep(interval)
+		interval *= 2
+		if interval > MaxRetryInterval {
+			interval = MaxRetryInterval
+		}
+	}
+}
+
 // Receive returns the channel from which incoming messages can be retrieved.
 // The channel is closed when the connection is closed.
 func (c *Conn) Receive() <-chan Message {

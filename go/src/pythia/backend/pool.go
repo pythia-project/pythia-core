@@ -89,10 +89,7 @@ func (pool *Pool) Setup(args []string) {
 
 // Run the Pool component.
 func (pool *Pool) Run() {
-	conn, err := pythia.Dial(pool.QueueAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
+	conn := pythia.DialRetry(pool.QueueAddr)
 	defer conn.Close()
 	pool.conn = conn
 	// Tokens is a buffered channel to enforce the capacity. Values do not

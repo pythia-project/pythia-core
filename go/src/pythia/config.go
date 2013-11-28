@@ -25,6 +25,13 @@ var (
 	// This setting shall be set before any Conn has been created, and shall not
 	// be altered afterwards.
 	KeepAliveInterval = 30 * time.Second
+
+	// Initial interval between dial tries. After each failed attempt, the
+	// interval is doubled, up to MaxRetryInterval.
+	InitialRetryInterval = 32 * time.Millisecond
+
+	// Maximum time interval between dial tries.
+	MaxRetryInterval = 5 * time.Minute
 )
 
 // vim:set sw=4 ts=4 noet:
