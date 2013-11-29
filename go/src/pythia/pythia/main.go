@@ -21,7 +21,7 @@ import (
 	"os"
 	"os/signal"
 	"pythia"
-	"pythia/backend"
+	_ "pythia/backend"
 	"syscall"
 )
 
@@ -35,18 +35,12 @@ func main() {
 		usage()
 	}
 	name, args := os.Args[1], os.Args[2:]
-	var component pythia.Component
-	switch name {
-	case "execute":
-		component = backend.NewJob()
-	case "pool":
-		component = backend.NewPool()
-	case "queue":
-		component = backend.NewQueue()
-	default:
+	info, ok := pythia.Components[name]
+	if !ok {
 		fmt.Println("Unknown component", name)
 		usage()
 	}
+	component := info.New()
 	component.Setup(args)
 	terminate, done := make(chan os.Signal, 1), make(chan bool, 1)
 	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)

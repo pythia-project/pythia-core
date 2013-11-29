@@ -27,6 +27,14 @@ import (
 	"sync"
 )
 
+func init() {
+	pythia.Components["queue"] = pythia.ComponentInfo{
+		Name:        "queue",
+		Description: "Central queue back-end component",
+		New:         func() pythia.Component { return NewQueue() },
+	}
+}
+
 // A queueClient is an internal structure keeping information about active
 // connections. An active connection may be a pool or a client (or even both).
 // We consider each connection to be a pool (maybe with Capacity 0).

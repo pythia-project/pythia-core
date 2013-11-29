@@ -24,6 +24,14 @@ import (
 	"sync"
 )
 
+func init() {
+	pythia.Components["pool"] = pythia.ComponentInfo{
+		Name:        "pool",
+		Description: "Back-end component managing a pool of sandboxes",
+		New:         func() pythia.Component { return NewPool() },
+	}
+}
+
 // A Pool is a component that launches sandboxes on the local machine.
 // Each Pool has a limit on the number of sandboxes that can run concurrently.
 //

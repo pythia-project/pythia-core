@@ -215,6 +215,14 @@ func (job *Job) watch() {
 ////////////////////////////////////////////////////////////////////////////////
 // Component implementation for CLI debugging
 
+func init() {
+	pythia.Components["execute"] = pythia.ComponentInfo{
+		Name:        "execute",
+		Description: "Execute a single job (for debugging purposes)",
+		New:         func() pythia.Component { return NewJob() },
+	}
+}
+
 // Setup the parameters with the command line flags in args.
 func (job *Job) Setup(args []string) {
 	fs := flag.NewFlagSet(os.Args[0]+" execute", flag.ExitOnError)

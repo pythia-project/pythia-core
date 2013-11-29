@@ -29,4 +29,21 @@ type Component interface {
 	Shutdown()
 }
 
+// A ComponentInfo is a type of component. Each type registers in the global
+// Components map.
+type ComponentInfo struct {
+	// CLI name of the component (must be unique).
+	// This is also the key of the Components map.
+	Name string
+
+	// Short one-line description that can be shown in the CLI.
+	Description string
+
+	// Function to create a new component of this type.
+	New func() Component
+}
+
+// The global Components map contains all registered component types.
+var Components = make(map[string]ComponentInfo)
+
 // vim:set sw=4 ts=4 noet:
