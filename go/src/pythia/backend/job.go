@@ -17,11 +17,11 @@ package backend
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -224,30 +224,31 @@ func init() {
 }
 
 // Setup the parameters with the command line flags in args.
-func (job *Job) Setup(args []string) {
-	fs := flag.NewFlagSet(os.Args[0]+" execute", flag.ExitOnError)
+func (job *Job) Setup(fs *flag.FlagSet, args []string) error {
+	taskfile := fs.String("task", "", "path to the task description (mandatory)")
+	inputfile := fs.String("input", "", "path to the input file (mandatory)")
 	fs.StringVar(&job.UmlPath, "uml", job.UmlPath, "path to the UML executable")
 	fs.StringVar(&job.EnvDir, "envdir", job.EnvDir, "environments directory")
 	fs.StringVar(&job.TasksDir, "tasksdir", job.TasksDir, "tasks directory")
 	if err := fs.Parse(args); err != nil {
-		log.Fatal(err)
+		return err
 	}
-	if len(fs.Args()) != 2 {
-		log.Fatal("Usage: ", os.Args[0], " execute TASK INPUT")
+	if len(*taskfile) == 0 || len(*inputfile) == 0 {
+		return errors.New("Missing task or input file")
 	}
-	taskfile, inputfile := fs.Arg(0), fs.Arg(1)
-	taskcontent, err := ioutil.ReadFile(taskfile)
+	taskcontent, err := ioutil.ReadFile(*taskfile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if json.Unmarshal(taskcontent, &job.Task) != nil {
-		log.Fatal(err)
+		return err
 	}
-	inputcontent, err := ioutil.ReadFile(inputfile)
+	inputcontent, err := ioutil.ReadFile(*inputfile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	job.Input = string(inputcontent)
+	return nil
 }
 
 // Execute the job when launched from the CLI. The result is shown on stdout.

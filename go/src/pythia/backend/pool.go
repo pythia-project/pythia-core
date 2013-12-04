@@ -18,7 +18,6 @@ package backend
 import (
 	"flag"
 	"log"
-	"os"
 	"pythia"
 	"sync"
 )
@@ -73,15 +72,12 @@ func NewPool() *Pool {
 }
 
 // Setup the parameters with the command line flags in args.
-func (pool *Pool) Setup(args []string) {
-	fs := flag.NewFlagSet(os.Args[0]+" pool", flag.ExitOnError)
+func (pool *Pool) Setup(fs *flag.FlagSet, args []string) error {
 	fs.IntVar(&pool.Capacity, "capacity", pool.Capacity, "max parallel sandboxes")
 	fs.StringVar(&pool.UmlPath, "uml", pool.UmlPath, "path to the UML executable")
 	fs.StringVar(&pool.EnvDir, "envdir", pool.EnvDir, "environments directory")
 	fs.StringVar(&pool.TasksDir, "tasksdir", pool.TasksDir, "tasks directory")
-	if err := fs.Parse(args); err != nil {
-		log.Fatal(err)
-	}
+	return fs.Parse(args)
 }
 
 // Run the Pool component.

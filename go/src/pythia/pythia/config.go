@@ -105,6 +105,13 @@ file (first form) or a specific pythia component (second form).
 Available components:
 `
 
+const componentUsageHeader = `Usage: %[1]s [global options] %[2]s [options]
+
+%[3]s
+
+Options:
+`
+
 // Usage prints a notice about the global use of pythia on the standard error.
 func Usage() {
 	fmt.Fprintf(os.Stderr, usageHeader, os.Args[0])
@@ -125,12 +132,21 @@ func UsageError(msg ...interface{}) {
 	os.Exit(2)
 }
 
+// CreateComponentUsage creates a usage function for a component.
+func createComponentUsage(info pythia.ComponentInfo, fs *flag.FlagSet) func() {
+	return func() {
+		fmt.Fprintf(os.Stderr, componentUsageHeader, os.Args[0], info.Name,
+			info.Description)
+		fs.PrintDefaults()
+	}
+}
+
 // ParseConfig parses the arguments given in the command line and reads the
 // configuration file.
-// It sets the global parameters and returns the component to run and the
-// component options.
+// It sets the global parameters and setups the component to run, which is
+// returned.
 // The program exits with error code 2 in case of an error.
-func ParseConfig() (pythia.ComponentInfo, []string) {
+func ParseConfig() pythia.Component {
 	parseArgs(os.Args[1:])
 	// Parse config file
 	rawcfg, err := ioutil.ReadFile(ConfigFile)
@@ -167,7 +183,16 @@ func ParseConfig() (pythia.ComponentInfo, []string) {
 	if !ok {
 		UsageError("Unknown component '", name, "'")
 	}
-	return info, args[1:]
+	// Setup component
+	component := info.New()
+	fs := flag.NewFlagSet(name, flag.ExitOnError)
+	fs.Usage = createComponentUsage(info, fs)
+	if err := component.Setup(fs, args[1:]); err != nil {
+		fmt.Fprint(os.Stderr, os.Args[0], " ", name, ": ", err, "\n")
+		fs.Usage()
+		os.Exit(2)
+	}
+	return component
 }
 
 // vim:set sw=4 ts=4 noet:

@@ -20,7 +20,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"pythia"
 	"strings"
 	"sync"
@@ -135,12 +134,9 @@ func NewQueue() *Queue {
 }
 
 // Setup configures the queue with the command line flags in args.
-func (queue *Queue) Setup(args []string) {
-	fs := flag.NewFlagSet(os.Args[0]+" queue", flag.ExitOnError)
+func (queue *Queue) Setup(fs *flag.FlagSet, args []string) error {
 	fs.IntVar(&queue.Capacity, "capacity", queue.Capacity, "queue capacity")
-	if err := fs.Parse(args); err != nil {
-		log.Fatal(err)
-	}
+	return fs.Parse(args)
 }
 
 // Run runs the Queue component.

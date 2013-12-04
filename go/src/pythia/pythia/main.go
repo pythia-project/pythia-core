@@ -23,9 +23,7 @@ import (
 )
 
 func main() {
-	info, args := ParseConfig()
-	component := info.New()
-	component.Setup(args)
+	component := ParseConfig()
 	terminate, done := make(chan os.Signal, 1), make(chan bool, 1)
 	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)
 	go func() {

@@ -15,12 +15,16 @@
 
 package pythia
 
+import (
+	"flag"
+)
+
 // A Component is meant to be run in its own process, and maybe on a separate
 // machine.
 type Component interface {
 	// Parse the command line arguments given by args and configure the
 	// component.
-	Setup(args []string)
+	Setup(fs *flag.FlagSet, args []string) error
 
 	// Execute the component.
 	Run()
