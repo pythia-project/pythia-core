@@ -20,7 +20,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"pythia"
 	"strings"
@@ -105,9 +104,6 @@ const (
 // The Queue is the only component listening for connections. All other
 // components connect to it.
 type Queue struct {
-	// The address to listen on.
-	ListenAddr net.Addr
-
 	// The maximum number of jobs that can wait to be executed.
 	Capacity int
 
@@ -133,7 +129,6 @@ type Queue struct {
 // NewQueue returns a new queue with default parameters.
 func NewQueue() *Queue {
 	queue := new(Queue)
-	queue.ListenAddr, _ = pythia.ParseAddr("127.0.0.1:9000")
 	queue.Capacity = 500
 	queue.quit = make(chan bool, 1)
 	return queue
@@ -142,21 +137,15 @@ func NewQueue() *Queue {
 // Setup configures the queue with the command line flags in args.
 func (queue *Queue) Setup(args []string) {
 	fs := flag.NewFlagSet(os.Args[0]+" queue", flag.ExitOnError)
-	bind := fs.String("bind", queue.ListenAddr.String(), "bind address")
 	fs.IntVar(&queue.Capacity, "capacity", queue.Capacity, "queue capacity")
 	if err := fs.Parse(args); err != nil {
 		log.Fatal(err)
 	}
-	bindaddr, err := pythia.ParseAddr(*bind)
-	if err != nil {
-		log.Fatal(err)
-	}
-	queue.ListenAddr = bindaddr
 }
 
 // Run runs the Queue component.
 func (queue *Queue) Run() {
-	l, err := pythia.Listen(queue.ListenAddr)
+	l, err := pythia.Listen(pythia.QueueAddr)
 	if err != nil {
 		log.Fatal(err)
 	}

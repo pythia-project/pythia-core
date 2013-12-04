@@ -18,7 +18,6 @@ package backend
 import (
 	"flag"
 	"log"
-	"net"
 	"os"
 	"pythia"
 	"sync"
@@ -40,9 +39,6 @@ func init() {
 // A Pool connects to the Queue, advertises its limits, and waits for jobs to
 // execute.
 type Pool struct {
-	// The address of the Queue
-	QueueAddr net.Addr
-
 	// Maximum number of sandboxes that may run at the same time
 	Capacity int
 
@@ -68,7 +64,6 @@ type Pool struct {
 // NewPool returns a new pool with default parameters.
 func NewPool() *Pool {
 	pool := new(Pool)
-	pool.QueueAddr, _ = pythia.ParseAddr("127.0.0.1:9000")
 	pool.Capacity = 1
 	pool.UmlPath = "vm/uml"
 	pool.EnvDir = "vm"
@@ -80,7 +75,6 @@ func NewPool() *Pool {
 // Setup the parameters with the command line flags in args.
 func (pool *Pool) Setup(args []string) {
 	fs := flag.NewFlagSet(os.Args[0]+" pool", flag.ExitOnError)
-	queue := fs.String("queue", pool.QueueAddr.String(), "queue address")
 	fs.IntVar(&pool.Capacity, "capacity", pool.Capacity, "max parallel sandboxes")
 	fs.StringVar(&pool.UmlPath, "uml", pool.UmlPath, "path to the UML executable")
 	fs.StringVar(&pool.EnvDir, "envdir", pool.EnvDir, "environments directory")
@@ -88,16 +82,11 @@ func (pool *Pool) Setup(args []string) {
 	if err := fs.Parse(args); err != nil {
 		log.Fatal(err)
 	}
-	queueaddr, err := pythia.ParseAddr(*queue)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pool.QueueAddr = queueaddr
 }
 
 // Run the Pool component.
 func (pool *Pool) Run() {
-	conn := pythia.DialRetry(pool.QueueAddr)
+	conn := pythia.DialRetry(pythia.QueueAddr)
 	defer conn.Close()
 	pool.conn = conn
 	// Tokens is a buffered channel to enforce the capacity. Values do not

@@ -50,6 +50,7 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
+	pythia.QueueAddr = addr
 	f.Queue, err = pythia.Listen(addr)
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +58,6 @@ func SetupPoolFixture(t *testing.T, capacity int) *PoolFixture {
 	// Setup pool
 	t.Log("Setup pool")
 	f.Pool = NewPool()
-	f.Pool.QueueAddr = addr
 	f.Pool.Capacity = capacity
 	f.Pool.UmlPath = pytest.UmlPath
 	f.Pool.EnvDir = pytest.VmDir

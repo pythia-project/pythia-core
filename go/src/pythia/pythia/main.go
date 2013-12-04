@@ -17,29 +17,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
-	"pythia"
-	_ "pythia/backend"
 	"syscall"
 )
 
-func usage() {
-	fmt.Println("Usage:", os.Args[0], "component")
-	os.Exit(1)
-}
-
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-	}
-	name, args := os.Args[1], os.Args[2:]
-	info, ok := pythia.Components[name]
-	if !ok {
-		fmt.Println("Unknown component", name)
-		usage()
-	}
+	info, args := ParseConfig()
 	component := info.New()
 	component.Setup(args)
 	terminate, done := make(chan os.Signal, 1), make(chan bool, 1)

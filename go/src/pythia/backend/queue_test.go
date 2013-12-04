@@ -47,7 +47,7 @@ func SetupQueueFixture(t *testing.T, capacity int, clients int) *QueueFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.Queue.ListenAddr = addr
+	pythia.QueueAddr = addr
 	go f.Queue.Run()
 	// Setup clients
 	t.Log("Setup initial clients")
