@@ -59,6 +59,9 @@ var (
 	queueAddr string
 )
 
+// Exit status to use in case of a usage error
+const UsageExitStatus = 7
+
 // NewGlobalFlags creates a new GlobalFlags structure.
 func init() {
 	gfs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -123,13 +126,13 @@ func Usage() {
 }
 
 // UsageError prints msg using fmt.Fprint, followed by the usage notice, and
-// exits with error 2.
+// exits with error UsageExitStatus.
 func UsageError(msg ...interface{}) {
 	fmt.Fprint(os.Stderr, os.Args[0], ": ")
 	fmt.Fprint(os.Stderr, msg...)
 	fmt.Fprint(os.Stderr, "\n")
 	Usage()
-	os.Exit(2)
+	os.Exit(UsageExitStatus)
 }
 
 // CreateComponentUsage creates a usage function for a component.
@@ -175,8 +178,8 @@ func ParseConfig() pythia.Component {
 	}
 	// Parse CLI arguments again to let them overwrite options in config file
 	args := parseArgs(os.Args[1:])
-	if len(args) < 1 {
-		UsageError("Missing component")
+	if len(args) == 0 {
+		return NewMaster()
 	}
 	name := args[0]
 	info, ok := pythia.Components[name]
@@ -190,7 +193,7 @@ func ParseConfig() pythia.Component {
 	if err := component.Setup(fs, args[1:]); err != nil {
 		fmt.Fprint(os.Stderr, os.Args[0], " ", name, ": ", err, "\n")
 		fs.Usage()
-		os.Exit(2)
+		os.Exit(UsageExitStatus)
 	}
 	return component
 }
