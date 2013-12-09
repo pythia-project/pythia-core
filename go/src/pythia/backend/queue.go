@@ -257,6 +257,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 		case closedMsg:
 			log.Print("Client ", qm.Client.Id, ": disconnected.")
 			close(qm.Client.Response)
+			delete(queue.clients, qm.Client.Id)
 			for _, job := range qm.Client.Running {
 				if job.Origin == nil {
 					// Submitter disconnected, we can discard the job.
