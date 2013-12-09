@@ -145,6 +145,7 @@ func (queue *Queue) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Listening to", pythia.QueueAddr)
 	closing := false
 	master := make(chan queueMessage)
 	queue.master = master
@@ -197,12 +198,16 @@ func (queue *Queue) main(master <-chan queueMessage) {
 	for qm := range master {
 		switch qm.Msg.Message {
 		case connectMsg:
+			log.Print("Client ", qm.Client.Id, ": connected.")
 			queue.clients[qm.Client.Id] = qm.Client
 		case pythia.RegisterPoolMsg:
+			log.Print("Client ", qm.Client.Id, ": pool capacity ",
+				qm.Msg.Capacity)
 			qm.Client.Capacity = qm.Msg.Capacity
 		case pythia.LaunchMsg:
 			id := qm.Msg.Id
 			if _, ok := queue.jobs[id]; ok {
+				log.Print("Job ", id, ": already launched, rejecting.")
 				qm.Client.Response <- pythia.Message{
 					Message: pythia.DoneMsg,
 					Id:      id,
@@ -210,6 +215,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 					Output:  "Job already launched",
 				}
 			} else if queue.waiting.Len() >= queue.Capacity {
+				log.Print("Job ", id, ": queue full, rejecting.")
 				qm.Client.Response <- pythia.Message{
 					Message: pythia.DoneMsg,
 					Id:      id,
@@ -225,9 +231,11 @@ func (queue *Queue) main(master <-chan queueMessage) {
 				qm.Client.Submitted[id] = job
 				queue.jobs[id] = job
 				job.WaitingElement = queue.waiting.PushBack(job)
+				log.Print("Job ", id, ": queued.")
 			}
 		case pythia.DoneMsg:
 			id := qm.Msg.Id
+			log.Print("Job ", id, ": done.")
 			job := queue.jobs[id]
 			if job == nil {
 				log.Println("Ignoring message for unknown job", qm.Msg)
@@ -247,6 +255,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 				job.Origin.Response <- qm.Msg
 			}
 		case closedMsg:
+			log.Print("Client ", qm.Client.Id, ": disconnected.")
 			close(qm.Client.Response)
 			for _, job := range qm.Client.Running {
 				if job.Origin == nil {
@@ -274,6 +283,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 				}
 			}
 		case quitMsg:
+			log.Println("Quitting.")
 			goto quit
 		default:
 			log.Fatal("Invalid internal message", qm.Msg)

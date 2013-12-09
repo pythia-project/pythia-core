@@ -113,7 +113,8 @@ func (master *Master) Shutdown() {
 // Having a centralized place for this ensures lines don't get mixed up.
 func (master *Master) logger(log chan logMessage) {
 	for m := range log {
-		fmt.Printf("%s [%d]: %s\n", m.Component.Name, m.Pid, m.Message)
+		fmt.Printf("%s %s [%d]: %s\n", time.Now().Format("2006-01-02 15:04:05"),
+			m.Component.Name, m.Pid, m.Message)
 	}
 }
 

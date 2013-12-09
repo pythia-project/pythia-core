@@ -17,12 +17,14 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	log.SetFlags(0)
 	component := ParseConfig()
 	terminate, done := make(chan os.Signal, 1), make(chan bool, 1)
 	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)

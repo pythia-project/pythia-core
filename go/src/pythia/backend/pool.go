@@ -85,6 +85,7 @@ func (pool *Pool) Run() {
 	conn := pythia.DialRetry(pythia.QueueAddr)
 	defer conn.Close()
 	pool.conn = conn
+	log.Println("Connected to queue", pythia.QueueAddr)
 	// Tokens is a buffered channel to enforce the capacity. Values do not
 	// matter.
 	tokens := make(chan bool, pool.Capacity)
@@ -115,6 +116,7 @@ mainloop:
 						wg.Done()
 					}(msg)
 				default:
+					log.Print("Job ", msg.Id, ": capacity exceeded.")
 					log.Println("Capacity exceeded, cannot handle job.")
 					conn.Send(pythia.Message{
 						Message: pythia.DoneMsg,
@@ -133,13 +135,13 @@ mainloop:
 	conn.Close()
 	pool.abort <- true
 	wg.Wait()
-	// BUG(vianney): Reconnect Pool to Queue automatically.
 }
 
 // DoJob executes a job and sends the result to the queue.
 // This function is meant to be run in its own goroutine, as it will block
 // until the end of the job execution.
 func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
+	log.Print("Job ", id, ": executing.")
 	job := NewJob()
 	job.Task = *task
 	job.Input = input
@@ -149,6 +151,7 @@ func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
 	done := make(chan bool)
 	go func() {
 		status, output := job.Execute()
+		log.Print("Job ", id, ": finished with status ", status)
 		pool.conn.Send(pythia.Message{
 			Message: pythia.DoneMsg,
 			Id:      id,
@@ -160,6 +163,7 @@ func (pool *Pool) doJob(id string, task *pythia.Task, input string) {
 	select {
 	case <-pool.abort:
 		pool.abort <- true
+		log.Print("Job ", id, ": aborting.")
 		job.Abort()
 		<-done
 	case <-done:
