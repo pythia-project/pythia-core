@@ -211,7 +211,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 				qm.Client.Response <- pythia.Message{
 					Message: pythia.DoneMsg,
 					Id:      id,
-					Status:  pythia.Error,
+					Status:  pythia.Fatal,
 					Output:  "Job already launched",
 				}
 			} else if queue.waiting.Len() >= queue.Capacity {

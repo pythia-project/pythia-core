@@ -27,8 +27,9 @@ const (
 	Timeout  Status = "timeout"  // timed out, output = stdout so far
 	Overflow Status = "overflow" // stdout too big, output = capped stdout
 	Abort    Status = "abort"    // aborted by abort message, no output
-	Crash    Status = "crash"    // sandbox crashed, output = stdout + exit code
-	Error    Status = "error"    // unrecoverable error (e.g. misformatted task), output = error message
+	Crash    Status = "crash"    // sandbox crashed, output = stdout
+	Error    Status = "error"    // (maybe temporary) error, output = error message
+	Fatal    Status = "fatal"    // unrecoverable error (e.g. misformatted task), output = error message
 )
 
 // Task is the description of a task to be run in a sandbox.
