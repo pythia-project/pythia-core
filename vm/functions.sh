@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2013 The Pythia Authors.
+# Copyright 2014 The Pythia Authors.
 # This file is part of Pythia.
 #
 # Pythia is free software: you can redistribute it and/or modify
@@ -69,7 +69,9 @@ install_debs() {
 ## Install busybox and create symlinks for programs that do not exist yet.
 
 install_busybox() {
-    mkdir -p "${work_dir}"/{,usr/}bin
+    for subdir in usr usr/bin ; do
+        mkdir -p "${work_dir}/${subdir}"
+    done
     install -m0755 "${build_dir}/busybox" "${work_dir}/bin/busybox"
     while read link; do
         [ -e "${work_dir}/${link}" ] || ln -s /bin/busybox "${work_dir}/${link}"

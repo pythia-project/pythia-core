@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2013 The Pythia Authors.
+# Copyright 2014 The Pythia Authors.
 # This file is part of Pythia.
 #
 # Pythia is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 set -e -u
 
-if [ ${EUID} -ne 0 ]; then
+if [ `id -u` -ne 0 ]; then
     exec fakeroot "$0" "$@"
 fi
 
@@ -79,7 +79,9 @@ work_dir=$(mktemp -d)
 msg "Creating base rootfs structure in ${work_dir}..."
 chmod 0755 "${work_dir}"
 umask 022
-mkdir -p "${work_dir}"/{dev,proc,sys,tmp,etc,bin,usr/bin,task}
+for subdir in dev proc sys tmp etc bin usr/bin task ; do
+    mkdir -p "${work_dir}/${subdir}"
+done
 
 # Execute configuration scripts
 for f in "$@"; do (
