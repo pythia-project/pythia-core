@@ -56,9 +56,8 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/main.c
  	return uml_exitcode;
  }
  
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/mem.c linux-3.10.5/arch/um/os-Linux/mem.c
---- linux-3.10.5.orig/arch/um/os-Linux/mem.c	2013-08-05 16:01:29.191483996 +0200
-+++ linux-3.10.5/arch/um/os-Linux/mem.c	2013-08-07 14:17:36.108460305 +0200
+--- linux-3.10.5.orig/arch/um/os-Linux/mem.c	2013-08-04 10:51:49.000000000 +0200
++++ linux-3.10.5/arch/um/os-Linux/mem.c	2014-03-04 09:49:27.522403822 +0100
 @@ -114,8 +114,6 @@
  
  	checked_tmpdir = 1;
@@ -68,7 +67,18 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/mem.c 
  	fd = open("/proc/mounts", O_RDONLY);
  	if (fd < 0) {
  		printf("failed to open /proc/mounts, errno = %d\n", errno);
-@@ -152,11 +150,9 @@
+@@ -136,9 +134,7 @@
+ 	}
+ 
+ err:
+-	if (found == 0)
+-		printf("nothing mounted on /dev/shm\n");
+-	else if (found < 0)
++	if (found < 0)
+ 		printf("read returned errno %d\n", -found);
+ 
+ out:
+@@ -152,11 +148,9 @@
  		goto err;
  
  	if (strncmp(buf, "tmpfs", strlen("tmpfs"))) {
@@ -80,7 +90,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/mem.c 
  	default_tmpdir = "/dev/shm";
  	goto out;
  }
-@@ -262,7 +258,6 @@
+@@ -262,7 +256,6 @@
  
  	addr = mmap(NULL, UM_KERN_PAGE_SIZE,
  		    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
@@ -88,7 +98,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/mem.c 
  	fflush(stdout);
  	if (addr == MAP_FAILED) {
  		err = errno;
-@@ -272,7 +267,6 @@
+@@ -272,7 +265,6 @@
  			printf("%s must be not mounted noexec\n",tempdir);
  		exit(1);
  	}
@@ -96,6 +106,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/mem.c 
  	munmap(addr, UM_KERN_PAGE_SIZE);
  
  	close(fd);
+
 diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/start_up.c linux-3.10.5/arch/um/os-Linux/start_up.c
 --- linux-3.10.5.orig/arch/um/os-Linux/start_up.c	2013-08-05 16:01:29.191483996 +0200
 +++ linux-3.10.5/arch/um/os-Linux/start_up.c	2013-08-07 14:29:24.455443543 +0200
