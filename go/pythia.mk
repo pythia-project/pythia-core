@@ -1,4 +1,4 @@
-# Copyright 2013 The Pythia Authors.
+# Copyright 2014 The Pythia Authors.
 # This file is part of Pythia.
 #
 # Pythia is free software: you can redistribute it and/or modify
@@ -34,7 +34,8 @@ go: $(GO_TARGETS) $(GO_OUT_BINARIES)
 $(GO_TARGETS): $(GO_SOURCES)
 	$(GO) install $(addsuffix /...,$(GO_PACKAGES))
 
-$(OUT_DIR)/%: $(GO_BINDIR)/%
+$(OUT_DIR)/%: $(abspath $(GO_BINDIR))/%
+	mkdir $(OUT_DIR)
 	cp $< $@
 
 clean::
