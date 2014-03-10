@@ -35,7 +35,7 @@ $(GO_TARGETS): $(GO_SOURCES)
 	$(GO) install $(addsuffix /...,$(GO_PACKAGES))
 
 $(OUT_DIR)/%: $(abspath $(GO_BINDIR))/%
-	mkdir $(OUT_DIR)
+	mkdir -p $(OUT_DIR)
 	cp $< $@
 
 clean::
