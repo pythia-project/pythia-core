@@ -58,7 +58,7 @@ install_debs() {
         fi
         # Extract deb
         msg "Extracting ${suite}/${pkgname}..."
-        ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}"
+        ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}" || ar -p "${deb}" data.tar.bz2 | tar -xjC "${work_dir}"
         touch "${work_dir}/tmp/debs/${suite}/${pkgname}"
     done
 }
