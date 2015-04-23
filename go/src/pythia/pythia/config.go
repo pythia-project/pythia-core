@@ -1,4 +1,4 @@
-// Copyright 2013 The Pythia Authors.
+// Copyright 2015 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ import (
 	"os"
 	"pythia"
 	_ "pythia/backend"
+	_ "pythia/frontend"
 )
 
 // Config is the structure of the configuration file.
