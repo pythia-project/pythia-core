@@ -1,4 +1,4 @@
-# Copyright 2013 The Pythia Authors.
+# Copyright 2013-2015 The Pythia Authors.
 # This file is part of Pythia.
 #
 # Pythia is free software: you can redistribute it and/or modify
@@ -29,6 +29,8 @@ $(TASKS_OUT_DIR)/%.task: $(TASKS_DIR)/%.task
 
 $(TASKS_OUT_DIR)/%.sfs: $$(wildcard $(TASKS_DIR)/$$*/*)
 	@mkdir -p $(@D)
+	find $(TASKS_DIR)/$* -type f -exec chmod 077 {} +
 	mksquashfs $+ $@ -all-root -comp lzo -noappend
+	find $(TASKS_DIR)/$* -type f -exec chmod 777 {} +
 
 # vim:set ts=4 sw=4 noet:
