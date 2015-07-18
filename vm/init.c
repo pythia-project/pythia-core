@@ -245,12 +245,15 @@ static void launch(char *cmd, uid_t uid) {
             shutdown();
     } else {
         // Child
-        childcheck("set uid", setuid(uid));
         childcheck("close /task/control", fclose(fcontrol));
         if(uid == UID_MASTER) {
+            childcheck("set gid", setgid(0));
+            childcheck("set uid", setuid(uid));
             // Make new files private to master by default
             umask(077);
         } else {
+            childcheck("set gid", setgid(2));
+            childcheck("set uid", setuid(uid));
             // Make new files public by default
             umask(000);
             // Deny access to input and output
