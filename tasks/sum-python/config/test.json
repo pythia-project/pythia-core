@@ -1,0 +1,24 @@
+{
+  "argc": 2,
+  "predefined": [{
+    "data": "(10, 5)",
+    "feedback": {
+      "10": "Have you summed the 2nd parameter?",
+      "5": "Have you summed the 1st parameter?"
+    }
+  }, {
+    "data": "(7, 15)"
+  }, {
+    "data": "(-1, 2)",
+    "feedback": {
+      "*": "Have considered negative parameter?"
+    }
+  }, {
+    "data": "(12, 0)"
+  }],
+  "random": {
+    "n": 10,
+    "args": ["int(-20,20)", "int(-20,20)"]
+  },
+  "code": "def sum(a, b):\n  return a + b"
+}

@@ -1,0 +1,10 @@
+{
+  "environment": "python",
+  "taskfs": "sum-python.sfs",
+  "limits": {
+    "time": 60,
+    "memory": 32,
+    "disk": 50,
+    "output": 1024
+  }
+}
