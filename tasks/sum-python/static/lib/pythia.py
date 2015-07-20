@@ -198,7 +198,7 @@ class FeedbackSuite:
               verdict = False
               feedback['example'] = {'input': input, 'expected': expected, 'actual': tokens[1]}
               if total < len(self.config):
-                message = config[i]['feedback']
+                message = self.config[total]['feedback']
                 if tokens[1] in message:
                   feedback['message'] = message[tokens[1]]
           else:
