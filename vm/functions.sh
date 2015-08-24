@@ -23,7 +23,7 @@
 ## The default suite is $DEBIAN_SUITE.
 
 : ${DEBIAN_MIRROR:=http://ftp.debian.org/debian}
-: ${DEBIAN_SUITE:=squeeze}
+: ${DEBIAN_SUITE:=jessie}
 debcache_dir=${cache_dir}/debian
 
 install_debs() {
@@ -58,7 +58,7 @@ install_debs() {
         fi
         # Extract deb
         msg "Extracting ${suite}/${pkgname}..."
-        ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}" || ar -p "${deb}" data.tar.bz2 | tar -xjC "${work_dir}"
+        ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}" || ar -p "${deb}" data.tar.bz2 | tar -xjC "${work_dir}" || ar -p "${deb}" data.tar.xz | tar -xJC "${work_dir}"
         touch "${work_dir}/tmp/debs/${suite}/${pkgname}"
     done
 }
