@@ -58,7 +58,16 @@ install_debs() {
         fi
         # Extract deb
         msg "Extracting ${suite}/${pkgname}..."
-        ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}" || ar -p "${deb}" data.tar.bz2 | tar -xjC "${work_dir}" || ar -p "${deb}" data.tar.xz | tar -xJC "${work_dir}"
+        content=$(ar -t ${deb})
+        if echo ${content} | grep -q data.tar.gz; then
+            ar -p "${deb}" data.tar.gz | tar -xzC "${work_dir}"
+        elif echo ${content} | grep -q data.tar.bz2; then
+            ar -p "${deb}" data.tar.bz2 | tar -xjC "${work_dir}"
+        elif echo ${content} | grep -q data.tar.xz; then
+            ar -p "${deb}" data.tar.xz | tar -xJC "${work_dir}"
+        else
+            msg "Error during extraction"
+        fi
         touch "${work_dir}/tmp/debs/${suite}/${pkgname}"
     done
 }
