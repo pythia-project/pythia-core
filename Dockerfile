@@ -1,5 +1,6 @@
 FROM ubuntu
 
+MAINTAINER Virginie Van den Schrieck, virginie.vandenschrieck@pythia-project.org
 
 # Build utilities
 RUN cat /etc/resolv.conf
