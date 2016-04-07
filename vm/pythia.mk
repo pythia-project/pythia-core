@@ -39,7 +39,7 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 ## UML Kernel
 
 UML_CONFIG := $~/uml.config
-UML_VERSION := 3.10.5
+UML_VERSION := 4.4.6
 UML_PATCHES := $~/uml-001-disable-umid.patch \
                $~/uml-002-quiet-startup.patch
 export UML := $(VM_OUT_DIR)/uml
@@ -47,7 +47,7 @@ export UML := $(VM_OUT_DIR)/uml
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
 UML_TREE := $(UML_DIR)/extracted.stamp
 UML_ARCHIVE := $(VM_CACHE_DIR)/linux-$(UML_VERSION).tar.xz
-UML_URL := http://www.kernel.org/pub/linux/kernel/v3.x/$(notdir $(UML_ARCHIVE))
+UML_URL := http://www.kernel.org/pub/linux/kernel/v4.x/$(notdir $(UML_ARCHIVE))
 
 UML_MAKE := $(MAKE) -C $(UML_DIR) ARCH=um SUBARCH=i386
 

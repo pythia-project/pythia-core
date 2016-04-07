@@ -1,17 +1,7 @@
-# Suppress output on start-up
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/kernel/um_arch.c linux-3.10.5/arch/um/kernel/um_arch.c
---- linux-3.10.5.orig/arch/um/kernel/um_arch.c	2013-08-05 16:01:29.194817345 +0200
-+++ linux-3.10.5/arch/um/kernel/um_arch.c	2013-08-07 14:23:07.590170839 +0200
-@@ -298,8 +298,6 @@
- 	else
- 		mode = "SKAS0";
- 
--	printf("UML running in %s mode\n", mode);
--
- 	brk_start = (unsigned long) sbrk(0);
- 
- 	/*
-@@ -310,8 +308,6 @@
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/kernel/um_arch.c linux-patch/arch/um/kernel/um_arch.c
+--- linux-4.4.6/arch/um/kernel/um_arch.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/kernel/um_arch.c	2016-04-05 20:30:16.186488943 +0200
+@@ -287,8 +287,6 @@
  
  	diff = UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
  	if (diff > 1024 * 1024) {
@@ -20,119 +10,105 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/kernel/um_arch.
  		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
  	}
  
-@@ -336,8 +332,6 @@
- 		physmem_size -= highmem;
- #ifndef CONFIG_HIGHMEM
- 		highmem = 0;
--		printf("CONFIG_HIGHMEM not enabled - physical memory shrunk "
--		       "to %Lu bytes\n", physmem_size);
- #endif
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/mem.c linux-patch/arch/um/os-Linux/mem.c
+--- linux-4.4.6/arch/um/os-Linux/mem.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/os-Linux/mem.c	2016-04-05 20:29:17.869824794 +0200
+@@ -25,13 +25,11 @@
+ {
+ 	struct statfs st;
+ 
+-	printf("Checking if %s is on tmpfs...", dir);
+ 	if (statfs(dir, &st) < 0) {
+ 		printf("%s\n", strerror(errno));
+ 	} else if (st.f_type != TMPFS_MAGIC) {
+ 		printf("no\n");
+ 	} else {
+-		printf("OK\n");
+ 		return 0;
  	}
+ 	return -1;
+@@ -61,7 +59,6 @@
+ 	int i;
+ 	const char *dir;
  
-@@ -363,10 +357,6 @@
- 		virtmem_size = avail;
- 	end_vm = start_vm + virtmem_size;
- 
--	if (virtmem_size < physmem_size)
--		printf("Kernel virtual memory size shrunk to %lu bytes\n",
--		       virtmem_size);
--
- 	atomic_notifier_chain_register(&panic_notifier_list,
- 				       &panic_exit_notifier);
- 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/main.c linux-3.10.5/arch/um/os-Linux/main.c
---- linux-3.10.5.orig/arch/um/os-Linux/main.c	2013-08-05 16:01:29.191483996 +0200
-+++ linux-3.10.5/arch/um/os-Linux/main.c	2013-08-07 14:19:52.415830913 +0200
-@@ -182,12 +182,10 @@
- 
- 	/* Reboot */
- 	if (ret) {
--		printf("\n");
- 		execvp(new_argv[0], new_argv);
- 		perror("Failed to exec kernel");
- 		ret = 1;
+-	printf("Checking environment variables for a tempdir...");
+ 	for (i = 0; vars[i]; i++) {
+ 		dir = getenv(vars[i]);
+ 		if ((dir != NULL) && (*dir != '\0')) {
+@@ -72,7 +69,6 @@
+ 				goto warn;
+ 		}
  	}
--	printf("\n");
- 	return uml_exitcode;
- }
+-	printf("none found\n");
  
---- linux-3.10.5.orig/arch/um/os-Linux/mem.c	2013-08-04 10:51:49.000000000 +0200
-+++ linux-3.10.5/arch/um/os-Linux/mem.c	2014-03-04 09:49:27.522403822 +0100
-@@ -114,8 +114,6 @@
- 
- 	checked_tmpdir = 1;
- 
--	printf("Checking for tmpfs mount on /dev/shm...");
--
- 	fd = open("/proc/mounts", O_RDONLY);
- 	if (fd < 0) {
- 		printf("failed to open /proc/mounts, errno = %d\n", errno);
-@@ -136,9 +134,7 @@
- 	}
- 
- err:
--	if (found == 0)
--		printf("nothing mounted on /dev/shm\n");
--	else if (found < 0)
-+	if (found < 0)
- 		printf("read returned errno %d\n", -found);
- 
- out:
-@@ -152,11 +148,9 @@
- 		goto err;
- 
- 	if (strncmp(buf, "tmpfs", strlen("tmpfs"))) {
--		printf("not tmpfs\n");
- 		goto out;
- 	}
- 
--	printf("OK\n");
- 	default_tmpdir = "/dev/shm";
- 	goto out;
- }
-@@ -262,7 +256,6 @@
+ 	for (i = 0; tmpfs_dirs[i]; i++) {
+ 		dir = tmpfs_dirs[i];
+@@ -189,7 +185,6 @@
  
  	addr = mmap(NULL, UM_KERN_PAGE_SIZE,
  		    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
--	printf("Checking PROT_EXEC mmap in %s...",tempdir);
- 	fflush(stdout);
+-	printf("Checking PROT_EXEC mmap in %s...", tempdir);
  	if (addr == MAP_FAILED) {
  		err = errno;
-@@ -272,7 +265,6 @@
- 			printf("%s must be not mounted noexec\n",tempdir);
+ 		printf("%s\n", strerror(err));
+@@ -198,7 +193,6 @@
+ 			printf("%s must be not mounted noexec\n", tempdir);
  		exit(1);
  	}
 -	printf("OK\n");
  	munmap(addr, UM_KERN_PAGE_SIZE);
  
  	close(fd);
-
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/start_up.c linux-3.10.5/arch/um/os-Linux/start_up.c
---- linux-3.10.5.orig/arch/um/os-Linux/start_up.c	2013-08-05 16:01:29.191483996 +0200
-+++ linux-3.10.5/arch/um/os-Linux/start_up.c	2013-08-07 14:29:24.455443543 +0200
-@@ -84,11 +84,6 @@
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/start_up.c linux-patch/arch/um/os-Linux/start_up.c
+--- linux-4.4.6/arch/um/os-Linux/start_up.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/os-Linux/start_up.c	2016-04-05 20:19:59.483182250 +0200
+@@ -166,7 +166,6 @@
+ 	unsigned long regs[MAX_REG_NR];
+ 	int pid, n, status, count=0;
  
- static void non_fatal(char *fmt, ...)
+-	non_fatal("Checking syscall emulation patch for ptrace...");
+ 	sysemu_supported = 0;
+ 	pid = start_ptraced_child();
+ 
+@@ -199,10 +198,8 @@
+ 		goto fail_stopped;
+ 
+ 	sysemu_supported = 1;
+-	non_fatal("OK\n");
+ 	set_using_sysemu(!force_sysemu_disabled);
+ 
+-	non_fatal("Checking advanced syscall emulation patch for ptrace...");
+ 	pid = start_ptraced_child();
+ 
+ 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
+@@ -244,7 +241,6 @@
+ 		goto fail_stopped;
+ 
+ 	sysemu_supported = 2;
+-	non_fatal("OK\n");
+ 
+ 	if (!force_sysemu_disabled)
+ 		set_using_sysemu(sysemu_supported);
+@@ -260,7 +256,6 @@
  {
--	va_list list;
--
--	va_start(list, fmt);
--	vfprintf(stderr, fmt, list);
--	va_end(list);
+ 	int pid, syscall, n, status;
+ 
+-	non_fatal("Checking that ptrace can change system call numbers...");
+ 	pid = start_ptraced_child();
+ 
+ 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
+@@ -292,7 +287,6 @@
+ 		}
+ 	}
+ 	stop_ptraced_child(pid, 0, 1);
+-	non_fatal("OK\n");
+ 	check_sysemu();
  }
  
- static int start_ptraced_child(void)
-@@ -337,23 +332,6 @@
- 
- static void __init check_coredump_limit(void)
- {
--	struct rlimit lim;
--	int err = getrlimit(RLIMIT_CORE, &lim);
--
--	if (err) {
--		perror("Getting core dump limit");
--		return;
--	}
+@@ -307,16 +301,6 @@
+ 		perror("Getting core dump limit");
+ 		return;
+ 	}
 -
 -	printf("Core dump limits :\n\tsoft - ");
 -	if (lim.rlim_cur == RLIM_INFINITY)
@@ -146,64 +122,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/um/os-Linux/start_
  }
  
  void __init os_early_checks(void)
-@@ -422,10 +400,7 @@
- 
- 	n = ptrace(PTRACE_FAULTINFO, pid, 0, &fi);
- 	if (n < 0) {
--		if (errno == EIO)
--			non_fatal("not found\n");
--		else
--			perror("not found");
-+		non_fatal("not found\n");
- 	} else if (disable_ptrace_faultinfo)
- 		non_fatal("found but disabled on command line\n");
- 	else {
-@@ -451,10 +426,7 @@
- 
- 	n = ptrace(PTRACE_LDT, pid, 0, (unsigned long) &ldt_op);
- 	if (n < 0) {
--		if (errno == EIO)
--			non_fatal("not found\n");
--		else
--			perror("not found");
-+		non_fatal("not found\n");
- 	} else if (disable_ptrace_ldt)
- 		non_fatal("found, but use is disabled\n");
- 	else {
-@@ -470,7 +442,7 @@
- {
- 	non_fatal("  - /proc/mm...");
- 	if (access("/proc/mm", W_OK) < 0)
--		perror("not found");
-+		non_fatal("not found");
- 	else if (disable_proc_mm)
- 		non_fatal("found but disabled on command line\n");
- 	else {
-@@ -508,18 +480,18 @@
- 	file++;
- 	fd = open(file, O_RDWR, 0);
- 	if (fd < 0) {
--		perror("parse_iomem - Couldn't open io file");
-+		non_fatal("parse_iomem - Couldn't open io file");
- 		goto out;
- 	}
- 
- 	if (fstat64(fd, &buf) < 0) {
--		perror("parse_iomem - cannot stat_fd file");
-+		non_fatal("parse_iomem - cannot stat_fd file");
- 		goto out_close;
- 	}
- 
- 	new = malloc(sizeof(*new));
- 	if (new == NULL) {
--		perror("Couldn't allocate iomem_region struct");
-+		non_fatal("Couldn't allocate iomem_region struct");
- 		goto out_close;
- 	}
- 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-3.10.5.orig/arch/x86/um/os-Linux/task_size.c linux-3.10.5/arch/x86/um/os-Linux/task_size.c
---- linux-3.10.5.orig/arch/x86/um/os-Linux/task_size.c	2013-08-05 16:01:29.258150974 +0200
-+++ linux-3.10.5/arch/x86/um/os-Linux/task_size.c	2013-08-07 14:13:39.693909193 +0200
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/x86/um/os-Linux/task_size.c linux-patch/arch/x86/um/os-Linux/task_size.c
+--- linux-4.4.6/arch/x86/um/os-Linux/task_size.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/x86/um/os-Linux/task_size.c	2016-04-05 20:15:56.883192730 +0200
 @@ -79,9 +79,6 @@
  	unsigned long top = 0xffffd000 >> UM_KERN_PAGE_SHIFT;
  	unsigned long test, original;
