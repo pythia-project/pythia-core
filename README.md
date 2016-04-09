@@ -1,4 +1,4 @@
-# Pythia
+# Pythia [![Documentation Status](https://readthedocs.org/projects/pythia-core/badge/?version=latest)](http://pythia-core.readthedocs.org/en/latest/?badge=latest)
 
 Pythia is an application that executes code safely, within UML virtual machines.
 
