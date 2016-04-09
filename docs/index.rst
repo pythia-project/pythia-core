@@ -1,5 +1,5 @@
 Pythia-core: safe code execution within UML virtual machines
-=======================================
+============================================================
 
 Pythia is a framework deployed as an online platform whose goal is to teach programming and algorithm design. The platform executes the code in a safe environment and its main advantage is to provide intelligent feedback to its users to suppor their learning. More details about the whole project can be found on the `official website of Pythia
 <http://www.pythia-project.org/>`_.
@@ -10,7 +10,7 @@ Pythia-core is the backbone of the Pythia framework. It manages a pool of UML vi
 
 
 Quick install
----------------
+-------------
 
 Start by installing required dependencies:
 
@@ -19,7 +19,7 @@ Start by installing required dependencies:
 * SquashFS tools (``squashfs-tools``)
 * Embedded GNU C Library (``libc6-dev-i386``)
 
-Then clone the Git repository, and launch the installation:::
+Then clone the Git repository, and launch the installation::
 
     > git clone --recursive https://github.com/pythia-project/pythia.git
     > cd pythia
@@ -28,7 +28,7 @@ Then clone the Git repository, and launch the installation:::
 
 
 Contents
----------------
+--------
 
 .. toctree::
    :maxdepth: 2
