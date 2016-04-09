@@ -1,6 +1,6 @@
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/kernel/um_arch.c linux-patch/arch/um/kernel/um_arch.c
---- linux-4.4.6/arch/um/kernel/um_arch.c	2016-03-16 16:43:17.000000000 +0100
-+++ linux-patch/arch/um/kernel/um_arch.c	2016-04-05 20:30:16.186488943 +0200
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-clean/arch/um/kernel/um_arch.c linux-patch/arch/um/kernel/um_arch.c
+--- linux-clean/arch/um/kernel/um_arch.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/kernel/um_arch.c	2016-04-09 13:28:28.269934144 +0200
 @@ -287,8 +287,6 @@
  
  	diff = UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
@@ -10,9 +10,25 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/kernel/um_arch.c linu
  		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
  	}
  
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/mem.c linux-patch/arch/um/os-Linux/mem.c
---- linux-4.4.6/arch/um/os-Linux/mem.c	2016-03-16 16:43:17.000000000 +0100
-+++ linux-patch/arch/um/os-Linux/mem.c	2016-04-05 20:29:17.869824794 +0200
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-clean/arch/um/os-Linux/main.c linux-patch/arch/um/os-Linux/main.c
+--- linux-clean/arch/um/os-Linux/main.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/os-Linux/main.c	2016-04-09 13:30:00.856598729 +0200
+@@ -186,12 +186,10 @@
+ 
+ 	/* Reboot */
+ 	if (ret) {
+-		printf("\n");
+ 		execvp(new_argv[0], new_argv);
+ 		perror("Failed to exec kernel");
+ 		ret = 1;
+ 	}
+-	printf("\n");
+ 	return uml_exitcode;
+ }
+ 
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-clean/arch/um/os-Linux/mem.c linux-patch/arch/um/os-Linux/mem.c
+--- linux-clean/arch/um/os-Linux/mem.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/os-Linux/mem.c	2016-04-09 13:28:28.269934144 +0200
 @@ -25,13 +25,11 @@
  {
  	struct statfs st;
@@ -59,9 +75,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/mem.c linux-
  	munmap(addr, UM_KERN_PAGE_SIZE);
  
  	close(fd);
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/start_up.c linux-patch/arch/um/os-Linux/start_up.c
---- linux-4.4.6/arch/um/os-Linux/start_up.c	2016-03-16 16:43:17.000000000 +0100
-+++ linux-patch/arch/um/os-Linux/start_up.c	2016-04-05 20:19:59.483182250 +0200
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-clean/arch/um/os-Linux/start_up.c linux-patch/arch/um/os-Linux/start_up.c
+--- linux-clean/arch/um/os-Linux/start_up.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/um/os-Linux/start_up.c	2016-04-09 13:28:28.273267478 +0200
 @@ -166,7 +166,6 @@
  	unsigned long regs[MAX_REG_NR];
  	int pid, n, status, count=0;
@@ -122,9 +138,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/um/os-Linux/start_up.c l
  }
  
  void __init os_early_checks(void)
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.4.6/arch/x86/um/os-Linux/task_size.c linux-patch/arch/x86/um/os-Linux/task_size.c
---- linux-4.4.6/arch/x86/um/os-Linux/task_size.c	2016-03-16 16:43:17.000000000 +0100
-+++ linux-patch/arch/x86/um/os-Linux/task_size.c	2016-04-05 20:15:56.883192730 +0200
+diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-clean/arch/x86/um/os-Linux/task_size.c linux-patch/arch/x86/um/os-Linux/task_size.c
+--- linux-clean/arch/x86/um/os-Linux/task_size.c	2016-03-16 16:43:17.000000000 +0100
++++ linux-patch/arch/x86/um/os-Linux/task_size.c	2016-04-09 13:28:28.273267478 +0200
 @@ -79,9 +79,6 @@
  	unsigned long top = 0xffffd000 >> UM_KERN_PAGE_SHIFT;
  	unsigned long test, original;
