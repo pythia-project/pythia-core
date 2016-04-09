@@ -25,6 +25,12 @@ Then clone the Git repository, and launch the installation::
     > cd pythia
     > make
 
+Once successfully installed, you can try to execute a simple task::
+
+    > cd pythia/out
+    > touch input.txt
+    > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
+
 
 
 Contents
