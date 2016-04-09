@@ -10,13 +10,26 @@ Pythia is an application that executes code safely, within UML virtual machines.
 ## Quick Install
 
 - Clone the repository
-  ```$ git clone https://github.com/pythia-project/pythia.git```
+
+        $ git clone --recursive https://github.com/pythia-project/pythia.git
+
 - Get into the directory
-  ```$ cd pythia```
+
+        $ cd pythia
+
 - Launch installation
-  ```$ make```
+
+        $ make
 
 ## Deployment with Docker
 
 - Change fstab to have shm in no-exec mode for UML
-  ```TODO```
+
+        TODO
+
+## Contributors
+
+- Sébastien Combéfis
+- Vianney le Clément de Saint-Marcq
+- Charles Vandevoorde
+- Virginie Van den Schrieck
