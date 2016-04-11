@@ -12,6 +12,8 @@ Pythia-core is the backbone of the Pythia framework. It manages a pool of UML vi
 Quick install
 -------------
 
+Since the pythia-core framework uses UML-based virtual machines, it can only be run on Linux.
+
 Start by installing required dependencies:
 
 * Make (4.0 or later)
@@ -19,7 +21,7 @@ Start by installing required dependencies:
 * SquashFS tools (``squashfs-tools``)
 * Embedded GNU C Library (``libc6-dev-i386``)
 
-Then clone the Git repository, and launch the installation:
+Then, clone the Git repository, and launch the installation:
 
 .. code-block:: none
 
@@ -34,6 +36,8 @@ Once successfully installed, you can try to execute a simple task:
     > cd pythia/out
     > touch input.txt
     > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
+
+and you will see ``Hello world!`` printed in your terminal.
 
 
 
