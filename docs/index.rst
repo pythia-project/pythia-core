@@ -19,13 +19,17 @@ Start by installing required dependencies:
 * SquashFS tools (``squashfs-tools``)
 * Embedded GNU C Library (``libc6-dev-i386``)
 
-Then clone the Git repository, and launch the installation::
+Then clone the Git repository, and launch the installation:
+
+.. code-block:: none
 
     > git clone --recursive https://github.com/pythia-project/pythia.git
     > cd pythia
     > make
 
-Once successfully installed, you can try to execute a simple task::
+Once successfully installed, you can try to execute a simple task:
+
+.. code-block:: none
 
     > cd pythia/out
     > touch input.txt
@@ -39,20 +43,17 @@ Contents
 This documentation is split into two parts: the first one is targeter to users and the second one is for developers. In any case, we recommend you to first read the user's documentation to understand how to use and test the framework.
 
 
-User's documentation
-````````````````````
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: User's Documentation
    
-   globalarch
+   presentation
    usage
 
 
-Developer's documentation
-`````````````````````````
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Developer's Documentation
    
+   architecture
    commmsg
