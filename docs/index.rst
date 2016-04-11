@@ -36,17 +36,23 @@ Once successfully installed, you can try to execute a simple task::
 Contents
 --------
 
+This documentation is split into two parts: the first one is targeter to users and the second one is for developers. In any case, we recommend you to first read the user's documentation to understand how to use and test the framework.
+
+
+User's documentation
+````````````````````
+
 .. toctree::
    :maxdepth: 2
    
+   globalarch
    usage
 
 
+Developer's documentation
+`````````````````````````
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+.. toctree::
+   :maxdepth: 2
+   
+   commmsg
