@@ -4,3 +4,4 @@ build/
 /go/bin/
 /go/pkg/
 _build_html/
+*.pdf
