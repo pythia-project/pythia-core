@@ -25,17 +25,17 @@ Then, clone the Git repository, and launch the installation:
 
 .. code-block:: none
 
-    > git clone --recursive https://github.com/pythia-project/pythia.git
-    > cd pythia
-    > make
+   > git clone --recursive https://github.com/pythia-project/pythia.git
+   > cd pythia
+   > make
 
 Once successfully installed, you can try to execute a simple task:
 
 .. code-block:: none
 
-    > cd pythia/out
-    > touch input.txt
-    > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
+   > cd pythia/out
+   > touch input.txt
+   > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
 
 and you will see ``Hello world!`` printed in your terminal.
 
