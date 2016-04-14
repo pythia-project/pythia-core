@@ -15,7 +15,7 @@ The pythia-core framework is built on two mains components, namely one queue and
    :scale: 40 %
    :alt: map to buried treasure
 
-   Figure 1: This is the caption of the figure (a simple paragraph).
+   Figure 1: The pythia-core framework is composed of two main components, namely a queue and several pools.
 
 The queue is the main component and is waiting for incoming connections. It means that the other components, that is, the pools and the frontends, have to first connect to the queue before being able to offer their services.
 
@@ -24,11 +24,68 @@ The queue is the main component and is waiting for incoming connections. It mean
 Environment and task filesystems
 --------------------------------
 
-`Jobs` that are executed by the virtual machines launched by the pools are composed of several elements as shown on Figure 2.
+`Jobs` that are executed by the virtual machines launched by the pools. They are composed of several elements as shown on Figure 2. The `environment` filesystem contains all the files that are necessary to execute the job (compilers, interpretors, configuration files, etc.) The `task` filesystem contains all the files that are specific to the job. In particular, it contains a `control` file which is launched at the job startup.
 
 .. figure:: _static/pythia-core-job-structure.png
    :align: center
    :scale: 40 %
    :alt: map to buried treasure
    
-   Caption of the figure
+   Figure 2: A job is composed of an environment and a task files.
+
+Several predefined environments are available in the `environments repository
+<https://github.com/pythia-project/environments>`_ on the GitHub page of the Pythia project organisation.
+
+
+
+Task description
+----------------
+
+In addition to the environment and task filesystems, the virtual machine can be configured with a set of constraints. The configuration is stored in a `.task` file containing a JSON object. The following table lists the parameters that can be configured:
+
+.. table::
+
+   +-----------------+-----------------+---------------------------------------------------+
+   | Key             | Subkey          | Description                                       |
+   +=================+=================+===================================================+
+   | ``environment`` |                 | Environment to use to execute the job             |
+   +-----------------+-----------------+---------------------------------------------------+
+   | ``taskfs``      |                 | Path to the task filesystem                       |
+   +-----------------+-----------------+---------------------------------------------------+
+   | ``limits``      | ``time``        | Maximum execution time allowed (seconds)          |
+   +-----------------+-----------------+---------------------------------------------------+
+   |                 | ``memory``      | Maximum amount on main memory (Mo)                |
+   +-----------------+-----------------+---------------------------------------------------+
+   |                 | ``disk``        | Size of the disk memory                           |
+   +-----------------+-----------------+---------------------------------------------------+
+   |                 | ``output``      | Maximum size of the output (number of characters) |
+   +-----------------+-----------------+---------------------------------------------------+
+
+
+
+Hello World example
+-------------------
+
+.. code-block:: json
+
+   {
+     "environment": "busybox",
+     "taskfs": "hello-world.sfs",
+     "limits": {
+       "time": 60,
+       "memory": 32,
+       "disk": 50,
+       "output": 1024
+     }
+   }
+
+
+.. code-block:: none
+
+   /task/hello.sh
+
+
+.. code-block:: shell
+
+   #!/bin/sh
+   echo "Hello world!"
