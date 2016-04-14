@@ -56,7 +56,7 @@ In addition to the environment and task filesystems, the virtual machine can be 
    +-----------------+-----------------+---------------------------------------------------+
    |                 | ``memory``      | Maximum amount on main memory (Mo)                |
    +-----------------+-----------------+---------------------------------------------------+
-   |                 | ``disk``        | Size of the disk memory                           |
+   |                 | ``disk``        | Size of the disk memory (percentage)              |
    +-----------------+-----------------+---------------------------------------------------+
    |                 | ``output``      | Maximum size of the output (number of characters) |
    +-----------------+-----------------+---------------------------------------------------+
@@ -65,6 +65,23 @@ In addition to the environment and task filesystems, the virtual machine can be 
 
 Hello World example
 -------------------
+
+Let us examine a simple example of a job whose execution simply returns `Hello World!`. The first thing to do is to define the task filesystem. The first file, namely ``hello.sh``, is just a shell script that prints ``Hello World!`` on the standard output.
+
+
+.. code-block:: shell
+
+   #!/bin/sh
+   echo "Hello world!"
+
+The second file, namely ``control``, must contain the sequence of executables to launch. It is the only file that is mandatory in a task filesystem. The one of this example just calls the ``hello.sh`` script. Note that the task filesystem is mounted in the ``/task`` directory inside the virtual machine.
+
+.. code-block:: none
+
+   /task/hello.sh
+
+Finally, constraints related to the execution environment of the job are specified in the ``hello-world.task`` file. The job uses the ``busybox`` environment (which provides several stripped-down Unix tools including ``sh``) and the task filesystem is contained in the ``hello-world.sfs`` file. The execution time is limited to 60 seconds, the main memory to 32 Mo, the disk size to 50% and the lenght of the output to 1024 characters.
+
 
 .. code-block:: json
 
@@ -78,14 +95,3 @@ Hello World example
        "output": 1024
      }
    }
-
-
-.. code-block:: none
-
-   /task/hello.sh
-
-
-.. code-block:: shell
-
-   #!/bin/sh
-   echo "Hello world!"
