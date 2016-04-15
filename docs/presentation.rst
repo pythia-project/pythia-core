@@ -66,7 +66,8 @@ In addition to the environment and task filesystems, the virtual machine can be 
 Hello World example
 -------------------
 
-Let us examine a simple example of a job whose execution simply returns `Hello World!`. The first thing to do is to define the task filesystem. The first file, namely ``hello.sh``, is just a shell script that prints ``Hello World!`` on the standard output.
+Let us examine a simple example of a job whose execution simply returns `Hello World!`. This example can be found in the ``tasks`` directory of the `pythia-core repository
+<https://github.com/pythia-project/pythia>`_ on GitHub. The first thing to do is to define the task filesystem. The first file, namely ``hello.sh``, is just a shell script that prints ``Hello World!`` on the standard output.
 
 
 .. code-block:: shell
@@ -80,7 +81,7 @@ The second file, namely ``control``, must contain the sequence of executables to
 
    /task/hello.sh
 
-Finally, constraints related to the execution environment of the job are specified in the ``hello-world.task`` file. The job uses the ``busybox`` environment (which provides several stripped-down Unix tools including ``sh``) and the task filesystem is contained in the ``hello-world.sfs`` file. The execution time is limited to 60 seconds, the main memory to 32 Mo, the disk size to 50% and the lenght of the output to 1024 characters.
+Finally, constraints related to the execution environment of the job are specified in the ``hello-world.task`` file. The job uses the ``busybox`` environment (which provides several stripped-down Unix tools including ``sh``) and the task filesystem is contained in the ``hello-world.sfs`` file. The execution time is limited to 60 seconds, the main memory to 32 Mo, the disk size to 50% and the length of the output to 1024 characters.
 
 
 .. code-block:: json
