@@ -1,6 +1,4 @@
-# Pythia [![Documentation Status](https://readthedocs.org/projects/pythia-core/badge/?version=latest)](http://pythia-core.readthedocs.org/en/latest/?badge=latest)
-
-[![Join the chat at https://gitter.im/pythia-project/pythia](https://badges.gitter.im/pythia-project/pythia.svg)](https://gitter.im/pythia-project/pythia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Pythia [![Documentation Status](https://readthedocs.org/projects/pythia-core/badge/?version=latest)](http://pythia-core.readthedocs.org/en/latest/?badge=latest) [![Join the chat at https://gitter.im/pythia-project/pythia](https://badges.gitter.im/pythia-project/pythia.svg)](https://gitter.im/pythia-project/pythia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Pythia is an application that executes code safely, within UML virtual machines.
 
