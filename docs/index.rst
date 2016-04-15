@@ -52,6 +52,7 @@ This documentation is split into two parts: the first one is targeter to users a
    :caption: User's Documentation
    
    presentation
+   compile-execute
    usage
 
 
