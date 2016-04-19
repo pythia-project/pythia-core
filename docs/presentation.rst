@@ -1,7 +1,7 @@
 Presentation
 ============
 
-The pythia-core framework makes it possible to execute code in a safe environment. It can be used to grade codes written written by non-trusted people, such as students in a learning environment, for example. The framework can execute jobs provided with optional inputs and that will produce outputs upon completion.
+The pythia-core framework makes it possible to execute code in a safe environment. It can be used to grade codes written by non-trusted people, such as students in a learning environment, for example. The framework can execute jobs provided with optional inputs and that will produce outputs upon completion.
 
 
 
