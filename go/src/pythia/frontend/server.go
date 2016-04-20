@@ -1,4 +1,4 @@
-// Copyright 2015 The Pythia Authors.
+// Copyright 2016 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -22,7 +22,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"pythia"
+	"syscall"
 )
 
 func init() {
@@ -69,12 +72,21 @@ func (server *Server) Setup(fs *flag.FlagSet, args []string) error {
 
 // Run the Server component.
 func (server *Server) Run() {
+	// Catch ctrl+c and SIGTERM
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func() {
+		signalType := <-ch
+		log.Println("Received signal", signalType)
+		signal.Stop(ch)
+		os.Exit(0)
+	}()
+	// Start the web server
 	http.HandleFunc("/execute", handler)
-	err := http.ListenAndServe(fmt.Sprint(":", server.Port), nil)
-	if err != nil {
+	log.Println("Server listening on", server.Port)
+	if err := http.ListenAndServe(fmt.Sprint(":", server.Port), nil); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Server listening on", server.Port)
 }
 
 // Shut down the Server component.
