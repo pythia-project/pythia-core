@@ -49,10 +49,25 @@ In the console of the queue, you can also notice that a new pool has been connec
    Client 0: connected.
    Client 0: pool capacity 1
 
-You can start as many pools as you want, as far as your machine is powerful enough to withstand the load. The queue will balance the tasks as equally as possible between all the pools that are connected to it.
+You can start as many pools as you want, as far as your machine is powerful enough to withstand the load. The queue will automatically balance the tasks as equally as possible between all the pools that are connected to it.
 
 
 
 Submitting a task with the server
 ---------------------------------
 
+Once the queue and pools are launched and correctly setup, it is possible to submit a task to the pythia-core framework by connecting as a frontend to the queue and sending the execution request. It is a different way to proceed compared to the direct execution with the ``execute`` subcommand where information about the task to execute are provided through a ``.task`` file.
+
+To make it easier to connect to the queue and send it request, a ``server`` submodule is available. This submodule launches an HTTP web server that communicates directly with the queue, reading information about the task from the ``.task`` file. You can also specify the text to pass to the standard input of the task with a parameter. Start simply by launching the server:
+
+.. code-block:: none
+
+   > pythia server
+
+Once the server is started, you can simply launch the execution of a task with the cURL program, for example:
+
+.. code-block:: none
+
+   > curl --data '{"tid": "hello-input", "response": "Sébastien\nVirginie\n"}' http://localhost:8080/execute
+   Hello Sébastien!
+   Hello Virginie!
