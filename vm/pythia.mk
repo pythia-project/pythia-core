@@ -47,7 +47,7 @@ export UML := $(VM_OUT_DIR)/uml
 UML_DIR := $(VM_BUILD_DIR)/linux-$(UML_VERSION)
 UML_TREE := $(UML_DIR)/extracted.stamp
 UML_ARCHIVE := $(VM_CACHE_DIR)/linux-$(UML_VERSION).tar.xz
-UML_URL := http://www.kernel.org/pub/linux/kernel/v4.x/$(notdir $(UML_ARCHIVE))
+UML_URL := https://www.kernel.org/pub/linux/kernel/v4.x/$(notdir $(UML_ARCHIVE))
 
 UML_MAKE := $(MAKE) -C $(UML_DIR) ARCH=um SUBARCH=i386
 
@@ -104,7 +104,7 @@ BUSYBOX := $(VM_BUILD_DIR)/busybox
 BUSYBOX_DIR := $(VM_BUILD_DIR)/busybox-$(BUSYBOX_VERSION)
 BUSYBOX_TREE := $(BUSYBOX_DIR)/extracted.stamp
 BUSYBOX_ARCHIVE := $(VM_CACHE_DIR)/busybox-$(BUSYBOX_VERSION).tar.bz2
-BUSYBOX_URL := http://busybox.net/downloads/$(notdir $(BUSYBOX_ARCHIVE))
+BUSYBOX_URL := https://busybox.net/downloads/$(notdir $(BUSYBOX_ARCHIVE))
 
 BUSYBOX_MAKE := $(MAKE) -C $(BUSYBOX_DIR) CC="$(CC) -m32" HOSTCC="$(CC) -m32"
 
@@ -127,7 +127,7 @@ $(BUSYBOX_TREE): $(BUSYBOX_ARCHIVE)
 
 $(BUSYBOX_ARCHIVE):
 	@mkdir -p $(@D)
-	wget -O $@ $(BUSYBOX_URL)
+	wget --no-check-certificate -O $@ $(BUSYBOX_URL)
 
 $(call add_target,busybox_menuconfig,MISC,Configure busybox)
 busybox_menuconfig: $(BUSYBOX_TREE)
