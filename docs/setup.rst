@@ -10,7 +10,7 @@ Starting the queue
 
 The main component of the pythia-core framework is the `queue`. Once started, the other components have to connect to the queue to register themselves and start using the services provided by the queue. The queue is characterised by two parameters:
 
-* the address and port it is listening to (127.0.0.1:9000 by default);
+* the address and port number it is listening to (127.0.0.1:9000 by default);
 * the maximum number of tasks waiting for execution (capacity of 500 by default).
 
 Starting the queue with default parameters is as easy as:
@@ -58,11 +58,16 @@ Submitting a task with the server
 
 Once the queue and pools are launched and correctly setup, it is possible to submit a task to the pythia-core framework by connecting as a frontend to the queue and sending the execution request. It is a different way to proceed compared to the direct execution with the ``execute`` subcommand where information about the task to execute are provided through a ``.task`` file.
 
-To make it easier to connect to the queue and send it request, a ``server`` submodule is available. This submodule launches an HTTP web server that communicates directly with the queue, reading information about the task from the ``.task`` file. You can also specify the text to pass to the standard input of the task with a parameter. Start simply by launching the server:
+To make it easier to connect to the queue and send it request, a ``server`` submodule is available. This submodule launches an HTTP web server that communicates directly with the queue, reading information about the task from the ``.task`` file. You can also specify the text to pass to the standard input of the task with a parameter. A server is characterised by one parameter:
+
+* the port number it is listening to (80 by default)
+
+Launching a new frontend server is as easy as:
 
 .. code-block:: none
 
    > pythia server
+   Server listening on 8080
 
 Once the server is started, you can simply launch the execution of a task with the cURL program, for example:
 
