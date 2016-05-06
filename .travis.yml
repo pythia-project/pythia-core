@@ -1,0 +1,56 @@
+# use ubuntu 14.04 instead of 12.04 because we need the newer version of libc6 to run
+# make4.
+sudo: required
+dist: trusty
+
+# according to https://docs.travis-ci.com/user/ci-environment/#Runtimes,
+# a go compiler is always present in an environment. Travis CI only support
+# one language so we use C.
+language: c
+
+matrix:
+    include:
+        - compiler: gcc-4.7
+        - compiler: gcc-5
+
+before_install:
+    - sudo apt-get update
+
+install:
+    # Install gvm (go version manager)
+    - bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+    - source /home/travis/.gvm/scripts/gvm
+    # TODO: to remove when GNU make >= 4.0 in travis CI
+    - wget http://ftp.us.debian.org/debian/pool/main/m/make-dfsg/make_4.0-8.1_amd64.deb
+    - sudo dpkg -i make_4.0-8.1_amd64.deb
+    # Install various version of golang
+    - gvm install go1.2 -B
+    - gvm install go1.4 -B
+    # https://github.com/moovweb/gvm#a-note-on-compiling-go-15
+    - gvm use go1.4
+    - gvm install go1.6 -B
+
+script:
+    # build everything and test with go1.2
+    - gvm use go1.2 && make all gotest
+    # test with go1.4
+    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.4 && make go gotest
+    # test with go1.6
+    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.6 && make go gotest
+
+addons:
+    apt:
+        sources:
+            ubuntu-toolchain-r-test
+        packages:
+            - kernel-package
+            - libncurses5-dev
+            - fakeroot
+            - wget
+            - bzip2
+            - squashfs-tools
+            - gcc-4.7
+            - gcc-4.7-multilib
+            - gcc-5
+            - gcc-5-multilib
+            - gcc-multilib
