@@ -1,11 +1,11 @@
-# use ubuntu 14.04 instead of 12.04 because we need the newer version of libc6 to run
+# Use ubuntu 14.04 instead of 12.04 because we need the newer version of libc6 to run
 # make4.
 sudo: required
 dist: trusty
 
-# according to https://docs.travis-ci.com/user/ci-environment/#Runtimes,
-# a go compiler is always present in an environment. Travis CI only support
-# one language so we use C.
+# According to https://docs.travis-ci.com/user/ci-environment/#Runtimes,
+# a go compiler is always present in an environment. Since Travis CI only support
+# one language, we use C.
 language: c
 
 matrix:
@@ -31,11 +31,11 @@ install:
     - gvm install go1.6 -B
 
 script:
-    # build everything and test with go1.2
+    # Build everything and test with go1.2
     - gvm use go1.2 && make all gotest
-    # test with go1.4
+    # Test with go1.4
     - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.4 && make go gotest
-    # test with go1.6
+    # Test with go1.6
     - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.6 && make go gotest
 
 addons:
