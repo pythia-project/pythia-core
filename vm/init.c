@@ -30,7 +30,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
-#include <linux/reboot.h>
+#include <sys/reboot.h>
 
 #define LOGNAME "pythia"
 
@@ -56,7 +56,7 @@
  * Shut down the virtual machine.
  */
 static inline void shutdown() {
-    reboot(LINUX_REBOOT_CMD_HALT);
+    reboot(RB_HALT_SYSTEM);
 }
 
 /**
