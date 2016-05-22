@@ -239,7 +239,7 @@ static void launch(char *cmd, uid_t uid) {
         die("fork", NULL);
     } else if(pid > 0) {
         // Parent
-        wait(&status);
+        waitpid(pid, &status, 0);
         if(uid == UID_MASTER &&
                 (!WIFEXITED(status) || WEXITSTATUS(status) != 0))
             shutdown();
