@@ -6,6 +6,10 @@ Pythia is an application that executes code safely, within UML virtual machines.
 
 - Make 4.0 or later
 - Go 1.2.1 or later
+- Squashfs
+- gcc-multilib
+- fakeroot
+- bc
 
 ## Quick Install
 
