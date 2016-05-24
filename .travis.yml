@@ -32,11 +32,11 @@ install:
 
 script:
     # Build everything and test with go1.2
-    - gvm use go1.2 && make all gotest
+    - gvm use go1.2 && make all check
     # Test with go1.4
-    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.4 && make go gotest
+    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.4 && make go check
     # Test with go1.6
-    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.6 && make go gotest
+    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.6 && make go check
 
 addons:
     apt:
