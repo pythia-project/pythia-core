@@ -30,7 +30,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
-#include <linux/reboot.h>
+#include <sys/reboot.h>
 
 #define LOGNAME "pythia"
 
@@ -56,7 +56,7 @@
  * Shut down the virtual machine.
  */
 static inline void shutdown() {
-    reboot(LINUX_REBOOT_CMD_HALT);
+    reboot(RB_HALT_SYSTEM);
 }
 
 /**
@@ -239,7 +239,7 @@ static void launch(char *cmd, uid_t uid) {
         die("fork", NULL);
     } else if(pid > 0) {
         // Parent
-        wait(&status);
+        waitpid(pid, &status, 0);
         if(uid == UID_MASTER &&
                 (!WIFEXITED(status) || WEXITSTATUS(status) != 0))
             shutdown();

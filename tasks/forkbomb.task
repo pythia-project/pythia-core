@@ -2,7 +2,7 @@
   "environment": "busybox",
   "taskfs": "forkbomb.sfs",
   "limits": {
-    "time": 60,
+    "time": 90,
     "memory": 32,
     "disk": 50,
     "output": 1024
