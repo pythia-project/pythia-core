@@ -5,7 +5,7 @@ Pythia is a framework deployed as an online platform whose goal is to teach prog
 <http://www.pythia-project.org/>`_.
 
 Pythia-core is the backbone of the Pythia framework. It manages a pool of UML virtual machines and is in charge of the safe execution of low-level jobs. Pythia-core is written in `Go
-<https://golang.org/>`_ and can be easily distributed on several machines or in the cloud.
+<https://golang.org>`_ and can be easily distributed on several machines or in the cloud.
 
 
 
@@ -25,19 +25,19 @@ Then, clone the Git repository, and launch the installation:
 
 .. code-block:: none
 
-   > git clone --recursive https://github.com/pythia-project/pythia.git
-   > cd pythia
+   > git clone --recursive https://github.com/pythia-project/pythia-core.git
+   > cd pythia-core
    > make
 
 Once successfully installed, you can try to execute a simple task:
 
 .. code-block:: none
 
-   > cd pythia/out
+   > cd out
    > touch input.txt
    > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
 
-and you will see ``Hello world!`` printed in your terminal.
+and you will see, among others, ``Hello world!`` printed in your terminal.
 
 
 

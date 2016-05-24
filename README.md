@@ -1,35 +1,31 @@
 # Pythia [![Build Status](https://travis-ci.org/pythia-project/pythia.svg?branch=master)](https://travis-ci.org/pythia-project/pythia) [![Documentation Status](https://readthedocs.org/projects/pythia-core/badge/?version=latest)](http://pythia-core.readthedocs.org/en/latest/?badge=latest) [![Join the chat at https://gitter.im/pythia-project/pythia](https://badges.gitter.im/pythia-project/pythia.svg)](https://gitter.im/pythia-project/pythia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Pythia is an application that executes code safely, within UML virtual machines.
-
-## Requirements
-
-- Make 4.0 or later
-- Go 1.2.1 or later
-- Squashfs
-- gcc-multilib
-- fakeroot
-- bc
+Pythia-core is the backbone of the Pythia framework. It manages a pool of UML virtual machines and is in charge of the safe execution of low-level jobs. Pythia-core is written in [Go](https://golang.org) and can be easily distributed on several machines or in the cloud.
 
 ## Quick Install
 
-- Clone the repository
+Since the pythia-core framework uses UML-based virtual machines, it can only be run on Linux.
 
-        $ git clone --recursive https://github.com/pythia-project/pythia.git
+Start by installing required dependencies:
 
-- Get into the directory
+- Make (4.0 or later)
+- Go (1.2.1 or later)
+- SquashFS tools (``squashfs-tools``)
+- Embedded GNU C Library (``libc6-dev-i386``)
 
-        $ cd pythia
+Then, clone the Git repository, and launch the installation:
 
-- Launch installation
+    > git clone --recursive https://github.com/pythia-project/pythia-core.git
+    > cd pythia-core
+    > make
 
-        $ make
+Once successfully installed, you can try to execute a simple task:
 
-## Deployment with Docker
+    > cd out
+    > touch input.txt
+    > ./pythia execute -input="input.txt" -task="tasks/hello-world.task"
 
-- Change fstab to have shm in no-exec mode for UML
-
-        TODO
+and you will see, among others, ``Hello world!`` printed in your terminal.
 
 ## Contributors
 
