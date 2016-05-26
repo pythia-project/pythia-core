@@ -23,62 +23,21 @@ import (
 	"time"
 )
 
-// NewTestJob creates a job, configured with the paths exported from make.
-func newTestJob(task pythia.Task, input string) *Job {
-	job := NewJob()
-	job.Task = task
-	job.Input = input
-	job.UmlPath = pytest.UmlPath
-	job.EnvDir = pytest.VmDir
-	job.TasksDir = pytest.TasksDir
-	return job
-}
-
-// RunTask executes task with input.
-// It checks that the execution time and output length are within the specified
-// limits.
-func runTask(t *testing.T, task pythia.Task, input string) (status pythia.Status, output string) {
-	job := newTestJob(task, input)
-	wd := testutils.Watchdog(t, task.Limits.Time+1)
-	status, output = job.Execute()
-	wd.Stop()
-	if len(output) > task.Limits.Output {
-		t.Errorf("Job output is too large: max %d, got %d.", task.Limits.Output,
-			len(output))
-	}
-	return
-}
-
-// RunTaskCheck behaves like RunTask, but additionally checks for expected
-// status and output.
-func runTaskCheck(t *testing.T, task pythia.Task, input string,
-	status pythia.Status, output string) {
-	st, out := runTask(t, task, input)
-	testutils.Expect(t, "status", status, st)
-	testutils.Expect(t, "output", output, out)
-}
-
-// Shortcut for runTask(t, pytest.ReadTask(t, basename), ...)
-func run(t *testing.T, basename string, input string, status pythia.Status,
-	output string) {
-	runTaskCheck(t, pytest.ReadTask(t, basename), input, status, output)
-}
-
 // Basic hello world task.
 func TestJobHelloWorld(t *testing.T) {
-	run(t, "hello-world", "", pythia.Success, "Hello world!\n")
+	Run(t, "hello-world", "", pythia.Success, "Hello world!\n")
 }
 
 // Check that the goroutines are cleaned correctly.
 func TestJobCleanup(t *testing.T) {
 	testutils.CheckGoroutines(t, func() {
-		run(t, "hello-world", "", pythia.Success, "Hello world!\n")
+		Run(t, "hello-world", "", pythia.Success, "Hello world!\n")
 	})
 }
 
 // Hello world task with input.
 func TestJobHelloInput(t *testing.T) {
-	run(t, "hello-input", "me\npythia\n",
+	Run(t, "hello-input", "me\npythia\n",
 		pythia.Success, "Hello me!\nHello pythia!\n")
 }
 
@@ -87,7 +46,7 @@ func TestJobTimeout(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping timeout test in short mode")
 	}
-	run(t, "timeout", "", pythia.Timeout, "Start\n")
+	Run(t, "timeout", "", pythia.Timeout, "Start\n")
 }
 
 // This task should overflow the output buffer.
@@ -113,20 +72,20 @@ func TestJobOverflow(t *testing.T) {
 // This task should overflow and be killed before the end.
 func TestJobOverflowKill(t *testing.T) {
 	wd := testutils.Watchdog(t, 2)
-	run(t, "overflow-kill", "", pythia.Overflow, "abcde")
+	Run(t, "overflow-kill", "", pythia.Overflow, "abcde")
 	wd.Stop()
 }
 
 // This task is a fork bomb. It should succeed, but not take the whole time.
 func TestJobForkbomb(t *testing.T) {
 	wd := testutils.Watchdog(t, 2)
-	run(t, "forkbomb", "", pythia.Success, "Start\nDone\n")
+	Run(t, "forkbomb", "", pythia.Success, "Start\nDone\n")
 	wd.Stop()
 }
 
 // Flooding the disk should not have any adverse effect.
 func TestJobFlooddisk(t *testing.T) {
-	run(t, "flooddisk", "", pythia.Success, "Start\nDone\n")
+	Run(t, "flooddisk", "", pythia.Success, "Start\nDone\n")
 }
 
 // Aborting a job shall be immediate.
