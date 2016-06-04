@@ -98,7 +98,7 @@ uml_oldconfig: $(UML_TREE)
 # Note: environment targets including busybox shall depend on $(BUSYBOX)
 
 BUSYBOX_CONFIG := $~/busybox.config
-BUSYBOX_VERSION := 1.21.1
+BUSYBOX_VERSION := 1.24.2
 BUSYBOX := $(VM_BUILD_DIR)/busybox
 
 BUSYBOX_DIR := $(VM_BUILD_DIR)/busybox-$(BUSYBOX_VERSION)
