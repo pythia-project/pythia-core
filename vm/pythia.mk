@@ -39,7 +39,7 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 ## UML Kernel
 
 UML_CONFIG := $~/uml.config
-UML_VERSION := 4.4.6
+UML_VERSION := 4.4.11
 UML_PATCHES := $~/uml-001-disable-umid.patch \
                $~/uml-002-quiet-startup.patch
 export UML := $(VM_OUT_DIR)/uml
@@ -98,7 +98,7 @@ uml_oldconfig: $(UML_TREE)
 # Note: environment targets including busybox shall depend on $(BUSYBOX)
 
 BUSYBOX_CONFIG := $~/busybox.config
-BUSYBOX_VERSION := 1.21.1
+BUSYBOX_VERSION := 1.24.2
 BUSYBOX := $(VM_BUILD_DIR)/busybox
 
 BUSYBOX_DIR := $(VM_BUILD_DIR)/busybox-$(BUSYBOX_VERSION)
