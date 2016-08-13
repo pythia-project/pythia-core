@@ -16,6 +16,7 @@
 package backend
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -184,6 +185,10 @@ func (job *Job) gatherOutput(stdout io.Reader) {
 	}
 	if read > job.Task.Limits.Output {
 		read = job.Task.Limits.Output
+	}
+	// Trim NULL bytes that could occur at the end of the buffer
+	if bytes.IndexByte(buffer, 0) != -1 {
+		read = bytes.IndexByte(buffer, 0)
 	}
 	job.output = strings.Replace(string(buffer[:read]), "\r\n", "\n", -1)
 }
