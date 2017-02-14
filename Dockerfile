@@ -48,7 +48,7 @@ RUN ./configure && make && make install &&make distclean
 #Install Pythia
 
 WORKDIR /home
-RUN git clone https://github.com/pythia-project/pythia.git
+RUN git clone https://github.com/pythia-project/pythia-core.git
 RUN ls && pwd
 WORKDIR /home/pythia/
 RUN git submodule update --init --recursive && make
