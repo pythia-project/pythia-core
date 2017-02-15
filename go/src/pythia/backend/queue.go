@@ -67,7 +67,7 @@ type queueJob struct {
 	// The client having submitted this job.
 	Origin *queueClient
 
-	// Element of the queue.waiting list pointing to this job, or nil if the job
+	// Element of the queue.Waiting list pointing to this job, or nil if the job
 	// is currently running.
 	WaitingElement *list.Element
 
@@ -104,7 +104,7 @@ const (
 // components connect to it.
 type Queue struct {
 	// The maximum number of jobs that can wait to be executed.
-	Capacity int
+	Capacity int `json:"capacity"`
 
 	// Channel to send messages to the main goroutine
 	master chan<- queueMessage
@@ -116,13 +116,13 @@ type Queue struct {
 	wg sync.WaitGroup
 
 	// Active connections
-	clients map[int]*queueClient
+	Clients map[int]*queueClient `json:"clients"`
 
 	// Jobs to be processed/currently processing
-	jobs map[string]*queueJob
+	Jobs map[string]*queueJob `json:"jobs"`
 
 	// List of jobs (*queueJob) waiting to be assigned.
-	waiting *list.List
+	Waiting *list.List `json:"waiting"`
 }
 
 // NewQueue returns a new queue with default parameters.
@@ -192,21 +192,21 @@ func (queue *Queue) Shutdown() {
 // Main goroutine responsible for scheduling the jobs.
 func (queue *Queue) main(master <-chan queueMessage) {
 	defer queue.wg.Done()
-	queue.clients = make(map[int]*queueClient)
-	queue.jobs = make(map[string]*queueJob)
-	queue.waiting = list.New()
+	queue.Clients = make(map[int]*queueClient)
+	queue.Jobs = make(map[string]*queueJob)
+	queue.Waiting = list.New()
 	for qm := range master {
 		switch qm.Msg.Message {
 		case connectMsg:
 			log.Print("Client ", qm.Client.Id, ": connected.")
-			queue.clients[qm.Client.Id] = qm.Client
+			queue.Clients[qm.Client.Id] = qm.Client
 		case pythia.RegisterPoolMsg:
 			log.Print("Client ", qm.Client.Id, ": pool capacity ",
 				qm.Msg.Capacity)
 			qm.Client.Capacity = qm.Msg.Capacity
 		case pythia.LaunchMsg:
 			id := qm.Msg.Id
-			if _, ok := queue.jobs[id]; ok {
+			if _, ok := queue.Jobs[id]; ok {
 				log.Print("Job ", id, ": already launched, rejecting.")
 				qm.Client.Response <- pythia.Message{
 					Message: pythia.DoneMsg,
@@ -214,7 +214,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 					Status:  pythia.Fatal,
 					Output:  "Job already launched",
 				}
-			} else if queue.waiting.Len() >= queue.Capacity {
+			} else if queue.Waiting.Len() >= queue.Capacity {
 				log.Print("Job ", id, ": queue full, rejecting.")
 				qm.Client.Response <- pythia.Message{
 					Message: pythia.DoneMsg,
@@ -229,14 +229,14 @@ func (queue *Queue) main(master <-chan queueMessage) {
 					Origin: qm.Client,
 				}
 				qm.Client.Submitted[id] = job
-				queue.jobs[id] = job
-				job.WaitingElement = queue.waiting.PushBack(job)
+				queue.Jobs[id] = job
+				job.WaitingElement = queue.Waiting.PushBack(job)
 				log.Print("Job ", id, ": queued.")
 			}
 		case pythia.DoneMsg:
 			id := qm.Msg.Id
 			log.Print("Job ", id, ": done.")
-			job := queue.jobs[id]
+			job := queue.Jobs[id]
 			if job == nil {
 				log.Println("Ignoring message for unknown job", qm.Msg)
 				break
@@ -246,7 +246,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 				log.Println("Ignoring message from wrong source", qm.Msg)
 				break
 			}
-			delete(queue.jobs, id)
+			delete(queue.Jobs, id)
 			delete(pool.Running, id)
 			if job.Origin != nil {
 				// job.Origin is nil if the submitting client has disconnected
@@ -257,22 +257,22 @@ func (queue *Queue) main(master <-chan queueMessage) {
 		case closedMsg:
 			log.Print("Client ", qm.Client.Id, ": disconnected.")
 			close(qm.Client.Response)
-			delete(queue.clients, qm.Client.Id)
+			delete(queue.Clients, qm.Client.Id)
 			for _, job := range qm.Client.Running {
 				if job.Origin == nil {
 					// Submitter disconnected, we can discard the job.
-					delete(queue.jobs, job.Id)
+					delete(queue.Jobs, job.Id)
 				} else {
 					// Otherwise, reschedule it.
 					job.Pool = nil
-					job.WaitingElement = queue.waiting.PushFront(job)
+					job.WaitingElement = queue.Waiting.PushFront(job)
 				}
 			}
 			for _, job := range qm.Client.Submitted {
 				if job.WaitingElement != nil {
 					// Job is in waiting queue, discard it.
-					queue.waiting.Remove(job.WaitingElement)
-					delete(queue.jobs, job.Id)
+					queue.Waiting.Remove(job.WaitingElement)
+					delete(queue.Jobs, job.Id)
 				} else if job.Pool != nil {
 					// Job is running, abort it.
 					job.Origin = nil
@@ -280,7 +280,7 @@ func (queue *Queue) main(master <-chan queueMessage) {
 						Message: pythia.AbortMsg,
 						Id:      job.Id,
 					}
-					// Keep job in queue.jobs to handle abort result
+					// Keep job in queue.Jobs to handle abort result
 				}
 			}
 		case quitMsg:
@@ -295,19 +295,19 @@ func (queue *Queue) main(master <-chan queueMessage) {
 	}
 
 quit:
-	if len(queue.clients) == 0 {
+	if len(queue.Clients) == 0 {
 		return
 	}
-	for _, client := range queue.clients {
+	for _, client := range queue.Clients {
 		close(client.Response)
 	}
-	// Wait for all clients to quit. We flush messages from the master channel
+	// Wait for all Clients to quit. We flush messages from the master channel
 	// to ensure no connection handler is in a deadlock.
 	for qm := range master {
 		switch qm.Msg.Message {
 		case closedMsg:
-			delete(queue.clients, qm.Client.Id)
-			if len(queue.clients) == 0 {
+			delete(queue.Clients, qm.Client.Id)
+			if len(queue.Clients) == 0 {
 				return
 			}
 		default:
@@ -320,17 +320,17 @@ quit:
 // This function shall be called from the main goroutine, as it manipulates
 // the queue data structures.
 func (queue *Queue) schedule() {
-	if queue.waiting.Len() == 0 {
+	if queue.Waiting.Len() == 0 {
 		return
 	}
-	for _, client := range queue.clients {
+	for _, client := range queue.Clients {
 		for len(client.Running) < client.Capacity {
-			job := queue.waiting.Remove(queue.waiting.Front()).(*queueJob)
+			job := queue.Waiting.Remove(queue.Waiting.Front()).(*queueJob)
 			job.WaitingElement = nil
 			job.Pool = client
 			client.Running[job.Id] = job
 			client.Response <- job.Msg
-			if queue.waiting.Len() == 0 {
+			if queue.Waiting.Len() == 0 {
 				return
 			}
 		}
