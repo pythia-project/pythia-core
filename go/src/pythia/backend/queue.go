@@ -23,6 +23,7 @@ import (
 	"pythia"
 	"strings"
 	"sync"
+	"time"
 )
 
 func init() {
@@ -123,6 +124,9 @@ type Queue struct {
 
 	// List of jobs (*queueJob) waiting to be assigned.
 	Waiting *list.List `json:"waiting"`
+
+	// Get the Queue creation datetime
+	CreationDate Time `json:"creation_date"`
 }
 
 // NewQueue returns a new queue with default parameters.
@@ -130,6 +134,7 @@ func NewQueue() *Queue {
 	queue := new(Queue)
 	queue.Capacity = 500
 	queue.quit = make(chan bool, 1)
+	queue.CreationDate = time.Now()
 	return queue
 }
 
