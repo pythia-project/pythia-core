@@ -38,13 +38,6 @@ RUN apt-get update \
 RUN apt-get update \
 	&& apt-get install -y fakeroot squashfs-tools libc6-dev-i386 bc
 
-#Install make4
-
-WORKDIR /home/
-RUN curl http://gnu.xl-mirror.nl/make/make-4.1.tar.gz | tar -v -C . -xz
-WORKDIR /home/make-4.1/
-RUN ./configure && make && make install &&make distclean
-
 #Install Pythia
 
 WORKDIR /home
