@@ -24,6 +24,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"encoding/json"
 )
 
 func init() {
@@ -154,6 +156,11 @@ func (queue *Queue) Run() {
 	closing := false
 	master := make(chan queueMessage)
 	queue.master = master
+
+	/* DEBUG */
+	json, err := json.Marshal(queue)
+	fmt.Println(string(json))
+	/* END DEBUG */
 	go func() {
 		<-queue.quit
 		closing = true
