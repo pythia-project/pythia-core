@@ -17,6 +17,7 @@ package backend
 
 import (
 	"container/list"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -24,8 +25,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"encoding/json"
 )
 
 func init() {
@@ -99,6 +98,17 @@ const (
 	quitMsg pythia.MsgType = "-quit"
 )
 
+// A queueStatus is an internal structure required to marshal the state of the Queue
+// in a semantically right JSON.
+type QueueStatus struct {
+	Capacity     int            `json:"capacity"`
+	Available    int            `json:"available"`
+	Clients      []*queueClient `json:"clients"`
+	Jobs         []*queueJob    `json:"jobs"`
+	Waiting      *list.List     `json:"waiting"`
+	CreationDate time.Time      `json:"creation_date"`
+}
+
 // The Queue is the central component of Pythia.
 // It receives jobs (tasks with inputs) from front-ends and dispatches them
 // to the sandboxes.
@@ -128,7 +138,7 @@ type Queue struct {
 	Waiting *list.List `json:"waiting"`
 
 	// Get the Queue creation datetime
-	CreationDate Time `json:"creation_date"`
+	CreationDate time.Time `json:"creation_date"`
 }
 
 // NewQueue returns a new queue with default parameters.
@@ -157,10 +167,6 @@ func (queue *Queue) Run() {
 	master := make(chan queueMessage)
 	queue.master = master
 
-	/* DEBUG */
-	json, err := json.Marshal(queue)
-	fmt.Println(string(json))
-	/* END DEBUG */
 	go func() {
 		<-queue.quit
 		closing = true
@@ -298,6 +304,19 @@ func (queue *Queue) main(master <-chan queueMessage) {
 		case quitMsg:
 			log.Println("Quitting.")
 			goto quit
+
+		case pythia.StatusMsg:
+			log.Println("Status Requested")
+			status := fillQueueStatus(queue)
+			id := qm.Msg.Id
+			serializedStatus, _ := json.Marshal(status)
+			qm.Client.Response <- pythia.Message{
+				Message: pythia.DoneMsg,
+				Id:      id,
+				Status:  pythia.Success,
+				Output:  string(serializedStatus),
+			}
+			log.Println("Status sent")
 		default:
 			log.Fatal("Invalid internal message", qm.Msg)
 		}
@@ -373,6 +392,8 @@ func (queue *Queue) handle(conn *pythia.Conn, client *queueClient, response chan
 				queue.master <- queueMessage{msg, client}
 			case pythia.DoneMsg:
 				queue.master <- queueMessage{msg, client}
+			case pythia.StatusMsg:
+				queue.master <- queueMessage{msg, client}
 			default:
 				log.Println("Ignoring message", msg)
 			}
@@ -386,10 +407,59 @@ func (queue *Queue) handle(conn *pythia.Conn, client *queueClient, response chan
 		case pythia.DoneMsg:
 			msg.Id = msg.Id[strings.Index(msg.Id, ":")+1:]
 			conn.Send(msg)
+		case pythia.StatusMsg:
+			conn.Send(msg)
 		default:
 			log.Fatal("Invalid internal message", msg)
 		}
 	}
+}
+
+// Utilitary function
+
+// Convert a Map given in argument into a slice
+// Note: the Map id is lost during the process
+/*func convertMapToSlice(myMap interface{}) (err Error, mySlice []interface{}) {
+	reflectedMap := reflect.ValueOf(myMap)
+	mapContentType := reflect.TypeOf(myMap).Elem()
+	if reflectedMap.Kind() == reflect.Map {
+		slice := reflect.MakeSlice(reflect.SliceOf(mapContentType), 0, 0).Interface()
+		for index, element := range reflectedMap {
+			append(slice, element)
+		}
+		return nil, slice
+	} else {
+		return errors.New("The parameter must be of type Map")
+	}
+}*/
+// TODO: Should be generified to use any kind of input type
+func convertClientsToSlice(clients map[int]*queueClient) (clientsSlice []*queueClient) {
+	clientsSlice = make([]*queueClient, len(clients))
+	for _, element := range clients {
+		clientsSlice = append(clientsSlice, element)
+	}
+	return clientsSlice
+}
+
+// TODO: Should be generified to use any kind of input type
+func convertJobsToSlice(jobs map[string]*queueJob) (jobsSlice []*queueJob) {
+	jobsSlice = make([]*queueJob, len(jobs))
+	for _, element := range jobs {
+		jobsSlice = append(jobsSlice, element)
+	}
+	return jobsSlice
+}
+
+// Return a QueueStatus struct filled with information coming from the Queue
+func fillQueueStatus(queue *Queue) (status QueueStatus) {
+	status.Capacity = queue.Capacity
+	status.Available = queue.Capacity - len(queue.Jobs) - queue.Waiting.Len()
+	status.Clients = convertClientsToSlice(queue.Clients)
+	status.Jobs = convertJobsToSlice(queue.Jobs)
+	status.Waiting = queue.Waiting
+	status.CreationDate = queue.CreationDate
+
+	return status
 }
 
 // vim:set ts=4 sw=4 noet:
