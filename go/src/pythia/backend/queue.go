@@ -43,7 +43,7 @@ type queueClient struct {
 	Id int
 
 	// The response channel.
-	Response chan<- pythia.Message
+	Response chan<- pythia.Message `json:"-"`
 
 	// The number of parallel jobs this pool can handle.
 	Capacity int
@@ -306,17 +306,20 @@ func (queue *Queue) main(master <-chan queueMessage) {
 			goto quit
 
 		case pythia.StatusMsg:
-			log.Println("Status Requested")
 			status := fillQueueStatus(queue)
 			id := qm.Msg.Id
-			serializedStatus, _ := json.Marshal(status)
+			serializedStatus, err := json.Marshal(status)
+			if err != nil {
+				log.Fatal("Queue is in an invalid state")
+				log.Fatal(err)
+			}
 			qm.Client.Response <- pythia.Message{
 				Message: pythia.DoneMsg,
 				Id:      id,
 				Status:  pythia.Success,
 				Output:  string(serializedStatus),
 			}
-			log.Println("Status sent")
+			log.Println("Client ", qm.Client.Id, " : Status sent")
 		default:
 			log.Fatal("Invalid internal message", qm.Msg)
 		}
