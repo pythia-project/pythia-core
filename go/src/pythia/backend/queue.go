@@ -418,24 +418,6 @@ func (queue *Queue) handle(conn *pythia.Conn, client *queueClient, response chan
 	}
 }
 
-// Utilitary function
-
-// Convert a Map given in argument into a slice
-// Note: the Map id is lost during the process
-/*func convertMapToSlice(myMap interface{}) (err Error, mySlice []interface{}) {
-	reflectedMap := reflect.ValueOf(myMap)
-	mapContentType := reflect.TypeOf(myMap).Elem()
-	if reflectedMap.Kind() == reflect.Map {
-		slice := reflect.MakeSlice(reflect.SliceOf(mapContentType), 0, 0).Interface()
-		for index, element := range reflectedMap {
-			append(slice, element)
-		}
-		return nil, slice
-	} else {
-		return errors.New("The parameter must be of type Map")
-	}
-}*/
-// TODO: Should be generified to use any kind of input type
 func convertClientsToSlice(clients map[int]*queueClient) (clientsSlice []*queueClient) {
 	clientsSlice = make([]*queueClient, 0)
 	for _, element := range clients {
@@ -444,7 +426,6 @@ func convertClientsToSlice(clients map[int]*queueClient) (clientsSlice []*queueC
 	return clientsSlice
 }
 
-// TODO: Should be generified to use any kind of input type
 func convertJobsToSlice(jobs map[string]*queueJob) (jobsSlice []*queueJob) {
 	jobsSlice = make([]*queueJob, 0)
 	for _, element := range jobs {
