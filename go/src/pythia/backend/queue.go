@@ -103,8 +103,8 @@ const (
 type QueueStatus struct {
 	Capacity     int            `json:"capacity"`
 	Available    int            `json:"available"`
-	Clients      []*queueClient `json:"clients"`
-	Jobs         []*queueJob    `json:"jobs"`
+	Clients      []*queueClient `json:"clients, omitempty"`
+	Jobs         []*queueJob    `json:"jobs, omitempty"`
 	Waiting      *list.List     `json:"waiting"`
 	CreationDate time.Time      `json:"creation_date"`
 }
@@ -117,7 +117,7 @@ type QueueStatus struct {
 // components connect to it.
 type Queue struct {
 	// The maximum number of jobs that can wait to be executed.
-	Capacity int `json:"capacity"`
+	Capacity int
 
 	// Channel to send messages to the main goroutine
 	master chan<- queueMessage
@@ -129,16 +129,16 @@ type Queue struct {
 	wg sync.WaitGroup
 
 	// Active connections
-	Clients map[int]*queueClient `json:"clients"`
+	Clients map[int]*queueClient
 
 	// Jobs to be processed/currently processing
-	Jobs map[string]*queueJob `json:"jobs"`
+	Jobs map[string]*queueJob
 
 	// List of jobs (*queueJob) waiting to be assigned.
-	Waiting *list.List `json:"waiting"`
+	Waiting *list.List
 
 	// Get the Queue creation datetime
-	CreationDate time.Time `json:"creation_date"`
+	CreationDate time.Time
 }
 
 // NewQueue returns a new queue with default parameters.
@@ -437,7 +437,7 @@ func (queue *Queue) handle(conn *pythia.Conn, client *queueClient, response chan
 }*/
 // TODO: Should be generified to use any kind of input type
 func convertClientsToSlice(clients map[int]*queueClient) (clientsSlice []*queueClient) {
-	clientsSlice = make([]*queueClient, len(clients))
+	clientsSlice = make([]*queueClient, 0)
 	for _, element := range clients {
 		clientsSlice = append(clientsSlice, element)
 	}
@@ -446,7 +446,7 @@ func convertClientsToSlice(clients map[int]*queueClient) (clientsSlice []*queueC
 
 // TODO: Should be generified to use any kind of input type
 func convertJobsToSlice(jobs map[string]*queueJob) (jobsSlice []*queueJob) {
-	jobsSlice = make([]*queueJob, len(jobs))
+	jobsSlice = make([]*queueJob, 0)
 	for _, element := range jobs {
 		jobsSlice = append(jobsSlice, element)
 	}
