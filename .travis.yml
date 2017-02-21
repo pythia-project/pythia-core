@@ -17,26 +17,21 @@ before_install:
     - sudo apt-get update
 
 install:
-    # Install gvm (go version manager)
-    - bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-    - source /home/travis/.gvm/scripts/gvm
     # TODO: to remove when GNU make >= 4.0 in travis CI
     - wget http://ftp.us.debian.org/debian/pool/main/m/make-dfsg/make_4.0-8.1_amd64.deb
     - sudo dpkg -i make_4.0-8.1_amd64.deb
-    # Install various version of golang
-    - gvm install go1.2 -B
-    - gvm install go1.4 -B
-    # https://github.com/moovweb/gvm#a-note-on-compiling-go-15
-    - gvm use go1.4
-    - gvm install go1.6 -B
 
 script:
     # Build everything and test with go1.2
-    - gvm use go1.2 && make all check
+    - eval "$(gimme 1.2)" && make all check
     # Test with go1.4
-    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.4 && make go check
+    - rm out/pythia && rm -r go/pkg go/bin && eval "$(gimme 1.4)" && make go check
     # Test with go1.6
-    - rm out/pythia && rm -r go/pkg go/bin && gvm use go1.6 && make go check
+    - rm out/pythia && rm -r go/pkg go/bin && eval "$(gimme 1.6)" && make go check
+    # Test with go1.7
+    - rm out/pythia && rm -r go/pkg go/bin && eval "$(gimme 1.7)" && make go check
+    # Test with go1.8
+    - rm out/pythia && rm -r go/pkg go/bin && eval "$(gimme 1.8)" && make go check
 
 addons:
     apt:
