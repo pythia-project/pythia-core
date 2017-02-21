@@ -119,7 +119,7 @@ func TestJobOverflowKill(t *testing.T) {
 
 // This task is a fork bomb. It should succeed, but not take the whole time.
 func TestJobForkbomb(t *testing.T) {
-	wd := testutils.Watchdog(t, 10)
+	wd := testutils.Watchdog(t, 60)
 	run(t, "forkbomb", "", pythia.Success, "Start\nDone\n")
 	wd.Stop()
 }
