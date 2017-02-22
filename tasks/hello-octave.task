@@ -1,0 +1,10 @@
+{
+  "environment": "octave",
+  "taskfs": "hello-octave.sfs",
+  "limits": {
+    "time": 60,
+    "memory": 128,
+    "disk": 50,
+    "output": 4096
+  }
+}
