@@ -27,6 +27,26 @@ Once successfully installed, you can try to execute a simple task:
 
 and you will see, among others, ``Hello world!`` printed in your terminal.
 
+## Use with Docker
+Docker allow the pythia-core framework to run on MacOS or Windows installation.
+
+Start by cloning the git repository and build the docker image:
+
+    > git clone --recursive https://github.com/pythia-project/pythia-core.git
+    > cd pythia-core
+    > docker build -t pythia-core .
+    
+Once the image is successfully built, you can now start the image:
+
+    > docker run -dit -p 8080:8080 --security-opt seccomp:unconfined --privileged pythia-core
+    > docker exec -it --privileged CONTAINER_ID bash
+    > mount /dev/shm
+    > cd out && touch input.txt
+    > ./pythia execute -input="input.txt" -tasks="tasks/hello-world.task"
+    
+You can obtain the container id using docker ps.
+You should see among others, ``Hello world!`` printed in your terminal.
+
 ## Contributors
 
 - Sébastien Combéfis

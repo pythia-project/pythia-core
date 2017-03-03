@@ -6,7 +6,7 @@ MAINTAINER Virginie Van den Schrieck, virginie.vandenschrieck@pythia-project.org
 RUN cat /etc/resolv.conf
 RUN apt-get update  \
 		&& apt-get install -y gcc libc6-dev make curl wget xz-utils\
-			--no-install-recommends \
+               ca-certificates bzip2 --no-install-recommends \
 		&& rm -rf /var/lib/apt/lists/*
 
 
@@ -37,19 +37,11 @@ RUN apt-get update \
 
 RUN apt-get update \
 	&& apt-get install -y fakeroot squashfs-tools libc6-dev-i386 bc
-	
-	
-#Install make4
-
-WORKDIR /home/
-RUN curl http://gnu.xl-mirror.nl/make/make-4.1.tar.gz | tar -v -C . -xz
-WORKDIR /home/make-4.1/
-RUN ./configure && make && make install &&make distclean
 
 #Install Pythia
 
 WORKDIR /home
-RUN git clone https://github.com/pythia-project/pythia.git 
+RUN git clone https://github.com/pythia-project/pythia-core.git pythia
 RUN ls && pwd
 WORKDIR /home/pythia/
 RUN git submodule update --init --recursive && make
@@ -59,6 +51,4 @@ RUN git submodule update --init --recursive && make
 RUN echo "tmpfs /dev/shm tmpfs defaults,nosuid,nodev 0 0" >> /etc/fstab && echo "">>/etc/fstab
 
 #TODO manually when running in privileged mode : mount /dev/shm
-
- 
 
