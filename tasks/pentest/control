@@ -1,0 +1,4 @@
+/task/scripts/preprocess.py
+/task/scripts/generate.py
+!/task/scripts/execute.py
+/task/scripts/feedback.py
