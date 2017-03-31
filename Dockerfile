@@ -50,5 +50,5 @@ RUN git submodule update --init --recursive && make
 #Change fstab to have shm in no-exec mode for UML
 
 RUN echo "tmpfs /dev/shm tmpfs defaults,nosuid,nodev 0 0" >> /etc/fstab && echo "">>/etc/fstab
-RUN mount /dev/shm
 
+ENTRYPOINT sh -c "mount /dev/shm && ./out/pythia queue & ./out/pythia pool & ./out/pythia server"
