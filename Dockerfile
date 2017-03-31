@@ -48,7 +48,7 @@ RUN git submodule update --init --recursive && make
 
 
 #Change fstab to have shm in no-exec mode for UML
-RUN echo "tmpfs /dev/shm tmpfs defaults,nosuid,nodev 0 0" >> /etc/fstab && echo "">>/etc/fstab
 
-#TODO manually when running in privileged mode : mount /dev/shm
+RUN echo "tmpfs /dev/shm tmpfs defaults,nosuid,nodev 0 0" >> /etc/fstab && echo "">>/etc/fstab
+RUN mount /dev/shm
 
