@@ -6,7 +6,7 @@ MAINTAINER Virginie Van den Schrieck, virginie.vandenschrieck@pythia-project.org
 RUN cat /etc/resolv.conf
 RUN apt-get update  \
 		&& apt-get install -y gcc libc6-dev make curl wget xz-utils\
-               ca-certificates bzip2 --no-install-recommends \
+               ca-certificates bzip2 --no-install-recommends strace \
 		&& rm -rf /var/lib/apt/lists/*
 
 
@@ -48,7 +48,7 @@ RUN git submodule update --init --recursive && make
 
 
 #Change fstab to have shm in no-exec mode for UML
+
 RUN echo "tmpfs /dev/shm tmpfs defaults,nosuid,nodev 0 0" >> /etc/fstab && echo "">>/etc/fstab
 
-#TODO manually when running in privileged mode : mount /dev/shm
-
+ENTRYPOINT sh -c "mount /dev/shm && strace ./out/pythia queue & strace ./out/pythia pool & strace ./out/pythia server"
