@@ -39,7 +39,7 @@ MKROOTFS_DEPS := $~/mkrootfs.sh $~/functions.sh $(ROOTFS_INIT)
 ## UML Kernel
 
 UML_CONFIG := $~/uml.config
-UML_VERSION := 4.4.11
+UML_VERSION := 4.9.98
 UML_PATCHES := $~/uml-001-disable-umid.patch \
                $~/uml-002-quiet-startup.patch
 export UML := $(VM_OUT_DIR)/uml

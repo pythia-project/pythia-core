@@ -1,20 +1,20 @@
 # Disable pid file creation in ~/.uml
-diff -urN linux-3.10.5.orig/arch/um/os-Linux/umid.c linux-3.10.5/arch/um/os-Linux/umid.c
---- linux-3.10.5.orig/arch/um/os-Linux/umid.c	2013-08-05 15:25:03.507523033 +0200
-+++ linux-3.10.5/arch/um/os-Linux/umid.c	2013-08-05 15:25:10.384225425 +0200
+diff -urN linux-4.9.98.orig/arch/um/os-Linux/umid.c linux-4.9.98/arch/um/os-Linux/umid.c
+--- linux-4.9.98.orig/arch/um/os-Linux/umid.c	2018-05-05 11:11:54.160968082 +0200
++++ linux-4.9.98/arch/um/os-Linux/umid.c	2018-05-05 11:12:51.840968082 +0200
 @@ -248,6 +248,8 @@
  	int fd, err;
  	char tmp[256];
- 
+
 +	return 0;
 +
  	if (umid_setup)
  		return 0;
- 
+
 @@ -384,6 +386,8 @@
  {
  	char dir[strlen(uml_dir) + UMID_LEN + 1], err;
- 
+
 +	return;
 +
  	sprintf(dir, "%s%s", uml_dir, umid);
