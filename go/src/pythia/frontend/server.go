@@ -16,10 +16,8 @@
 package frontend
 
 import (
-	"encoding/json"
+	"strconv"
 	"flag"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -82,9 +80,14 @@ func (server *Server) Run() {
 		os.Exit(0)
 	}()
 	// Start the web server
-	http.HandleFunc("/execute", handler)
+	router := NewRouter()
+	httpServ := &http.Server {
+		Addr:	":" + strconv.Itoa(server.Port),
+		Handler:	router,
+	}
+
 	log.Println("Server listening on", server.Port)
-	if err := http.ListenAndServe(fmt.Sprint(":", server.Port), nil); err != nil {
+	if err := httpServ.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -93,51 +96,5 @@ func (server *Server) Run() {
 func (server *Server) Shutdown() {
 }
 
-// Handler function for the server.
-func handler(rw http.ResponseWriter, req *http.Request) {
-	log.Println("Client connected: ", req.URL)
-	if req.Method != "POST" {
-		rw.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	// Reading the task request
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	var taskReq taskRequest
-	if err := json.Unmarshal([]byte(body), &taskReq); err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	// Connection to the pool and execution of the task
-	conn := pythia.DialRetry(pythia.QueueAddr)
-	defer conn.Close()
-	content, err := ioutil.ReadFile("tasks/" + taskReq.Tid + ".task")
-	if err != nil {
-		rw.WriteHeader(422)
-		return
-	}
-	var task pythia.Task
-	if err := json.Unmarshal([]byte(content), &task); err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	conn.Send(pythia.Message{
-		Message: pythia.LaunchMsg,
-		Id:      "test",
-		Task:    &task,
-		Input:   taskReq.Response,
-	})
-	if msg, ok := <-conn.Receive(); ok {
-		switch msg.Status {
-		case "success":
-			fmt.Fprintf(rw, msg.Output)
-		}
-		return
-	}
-	rw.WriteHeader(http.StatusInternalServerError)
-}
 
 // vim:set sw=4 ts=4 noet:
