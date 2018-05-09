@@ -1,7 +1,10 @@
 package frontend
 
 import (
+	"net"
 	"net/http"
+	"strings"
+
 	"github.com/gorilla/mux"
 )
 
@@ -29,9 +32,6 @@ func NewRouter() *mux.Router {
 
 	return router
 }
-
-/*
-NEXT STEP
 
 //MiddleWare check the IP of client with the list of IPs in conf.jdon
 func MiddleWare(h http.Handler) http.Handler {
@@ -67,7 +67,6 @@ func GetClientIPs(r *http.Request) []string {
 	IPs = append(IPs, ip)
 	return IPs
 }
-*/
 
 var routes = Routes{
 	Route{

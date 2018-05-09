@@ -16,13 +16,13 @@
 package frontend
 
 import (
-	"strconv"
 	"flag"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"pythia"
+	"strconv"
 	"syscall"
 )
 
@@ -81,9 +81,9 @@ func (server *Server) Run() {
 	}()
 	// Start the web server
 	router := NewRouter()
-	httpServ := &http.Server {
-		Addr:	":" + strconv.Itoa(server.Port),
-		Handler:	router,
+	httpServ := &http.Server{
+		Addr:    ":" + strconv.Itoa(server.Port),
+		Handler: MiddleWare(router),
 	}
 
 	log.Println("Server listening on", server.Port)
@@ -95,6 +95,5 @@ func (server *Server) Run() {
 // Shut down the Server component.
 func (server *Server) Shutdown() {
 }
-
 
 // vim:set sw=4 ts=4 noet:
