@@ -23,7 +23,7 @@
 ## The default suite is $DEBIAN_SUITE.
 
 : ${DEBIAN_MIRROR:=http://ftp.debian.org/debian}
-: ${DEBIAN_SUITE:=jessie}
+: ${DEBIAN_SUITE:=stretch}
 debcache_dir=${cache_dir}/debian
 
 install_debs() {
