@@ -1,6 +1,6 @@
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/kernel/um_arch.c linux-4.9.98/arch/um/kernel/um_arch.c
---- linux-4.9.98.orig/arch/um/kernel/um_arch.c	2018-05-05 11:11:54.148968082 +0200
-+++ linux-4.9.98/arch/um/kernel/um_arch.c	2018-05-05 11:27:21.404968082 +0200
+diff -urN linux-4.4.142.orig/arch/um/kernel/um_arch.c linux-4.4.142/arch/um/kernel/um_arch.c
+--- linux-4.4.142.orig/arch/um/kernel/um_arch.c	2018-07-21 11:45:38.243601252 +0200
++++ linux-4.4.142/arch/um/kernel/um_arch.c	2018-07-21 11:50:10.783601252 +0200
 @@ -287,8 +287,6 @@
 
  	diff = UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
@@ -10,9 +10,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/kernel/um_arch.
  		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
  	}
 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/main.c linux-4.9.98/arch/um/os-Linux/main.c
---- linux-4.9.98.orig/arch/um/os-Linux/main.c	2018-05-05 11:11:54.156968082 +0200
-+++ linux-4.9.98/arch/um/os-Linux/main.c	2018-05-05 11:30:38.284968082 +0200
+diff -urN linux-4.4.142.orig/arch/um/os-Linux/main.c linux-4.4.142/arch/um/os-Linux/main.c
+--- linux-4.4.142.orig/arch/um/os-Linux/main.c	2018-07-21 11:45:38.271601252 +0200
++++ linux-4.4.142/arch/um/os-Linux/main.c	2018-07-21 11:51:41.231601252 +0200
 @@ -186,12 +186,10 @@
 
  	/* Reboot */
@@ -26,9 +26,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/main.c
  	return uml_exitcode;
  }
 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/mem.c linux-4.9.98/arch/um/os-Linux/mem.c
---- linux-4.9.98.orig/arch/um/os-Linux/mem.c	2018-05-05 11:11:54.156968082 +0200
-+++ linux-4.9.98/arch/um/os-Linux/mem.c	2018-05-05 11:34:30.588968082 +0200
+diff -urN linux-4.4.142.orig/arch/um/os-Linux/mem.c linux-4.4.142/arch/um/os-Linux/mem.c
+--- linux-4.4.142.orig/arch/um/os-Linux/mem.c	2018-07-21 11:45:38.271601252 +0200
++++ linux-4.4.142/arch/um/os-Linux/mem.c	2018-07-21 11:53:42.119601252 +0200
 @@ -25,13 +25,11 @@
  {
  	struct statfs st;
@@ -59,7 +59,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/mem.c 
 
  	for (i = 0; tmpfs_dirs[i]; i++) {
  		dir = tmpfs_dirs[i];
-@@ -194,7 +190,6 @@
+@@ -189,7 +185,6 @@
 
  	addr = mmap(NULL, UM_KERN_PAGE_SIZE,
  		    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
@@ -67,7 +67,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/mem.c 
  	if (addr == MAP_FAILED) {
  		err = errno;
  		printf("%s\n", strerror(err));
-@@ -203,7 +198,6 @@
+@@ -198,7 +193,6 @@
  			printf("%s must be not mounted noexec\n", tempdir);
  		exit(1);
  	}
@@ -76,9 +76,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/mem.c 
 
  	close(fd);
 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/start_up.c linux-4.9.98/arch/um/os-Linux/start_up.c
---- linux-4.9.98.orig/arch/um/os-Linux/start_up.c	2018-05-05 11:11:54.160968082 +0200
-+++ linux-4.9.98/arch/um/os-Linux/start_up.c	2018-05-05 11:37:55.308968082 +0200
+diff -urN linux-4.4.142.orig/arch/um/os-Linux/start_up.c linux-4.4.142/arch/um/os-Linux/start_up.c
+--- linux-4.4.142.orig/arch/um/os-Linux/start_up.c	2018-07-21 11:45:38.271601252 +0200
++++ linux-4.4.142/arch/um/os-Linux/start_up.c	2018-07-21 11:56:13.947601252 +0200
 @@ -166,7 +166,6 @@
  	unsigned long regs[MAX_REG_NR];
  	int pid, n, status, count=0;
@@ -140,8 +140,9 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/um/os-Linux/start_
 
  void __init os_early_checks(void)
 
-diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/x86/um/os-Linux/task_size.c linux-4.9.98/arch/x86/um/os-Linux/task_size.c --- linux-4.9.98.orig/arch/x86/um/os-Linux/task_size.c	2018-05-05 11:11:54.348968082 +0200
-+++ linux-4.9.98/arch/x86/um/os-Linux/task_size.c	2018-05-05 11:41:33.352968082 +0200
+diff -urN linux-4.4.142.orig/arch/x86/um/os-Linux/task_size.c linux-4.4.142/arch/x86/um/os-Linux/task_size.c
+--- linux-4.4.142.orig/arch/x86/um/os-Linux/task_size.c	2018-07-21 11:45:38.447601252 +0200
++++ linux-4.4.142/arch/x86/um/os-Linux/task_size.c	2018-07-21 11:58:37.519601252 +0200
 @@ -79,9 +79,6 @@
  	unsigned long top = 0xffffd000 >> UM_KERN_PAGE_SHIFT;
  	unsigned long test, original;
@@ -156,7 +157,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/x86/um/os-Linux/ta
  		exit(1);
  	}
 
--	printf("0x%lx\n", bottom << UM_KERN_PAGE_SHIFT);
+-	printf("0x%x\n", bottom << UM_KERN_PAGE_SHIFT);
 -	printf("Locating the top of the address space ... ");
 -	fflush(stdout);
 -
@@ -167,7 +168,7 @@ diff -urN -x '*.o' -x '*.cmd' -x '*.s' linux-4.9.98.orig/arch/x86/um/os-Linux/ta
  		exit(1);
  	}
  	top <<= UM_KERN_PAGE_SHIFT;
--	printf("0x%lx\n", top);
+-	printf("0x%x\n", top);
 
  	return top;
  }
