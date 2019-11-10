@@ -1,0 +1,10 @@
+{
+  "environment": "golang",
+  "taskfs": "hello-go.sfs",
+  "limits": {
+    "time": 60,
+    "memory": 64,
+    "disk": 50,
+    "output": 1024
+  }
+}

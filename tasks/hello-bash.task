@@ -1,0 +1,10 @@
+{
+  "environment": "bash",
+  "taskfs": "hello-bash.sfs",
+  "limits": {
+    "time": 60,
+    "memory": 640,
+    "disk": 50,
+    "output": 1024
+  }
+}
