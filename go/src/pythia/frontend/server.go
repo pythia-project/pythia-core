@@ -1,4 +1,4 @@
-// Copyright 2016 The Pythia Authors.
+// Copyright 2015-2016 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify

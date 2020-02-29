@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2014 The Pythia Authors.
+# Copyright 2013-2018 The Pythia Authors.
 # This file is part of Pythia.
 #
 # Pythia is free software: you can redistribute it and/or modify
