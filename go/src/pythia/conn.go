@@ -1,4 +1,4 @@
-// Copyright 2013 The Pythia Authors.
+// Copyright 2013-2020 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -91,6 +91,7 @@ func (c *Conn) reader() {
 			return
 		} else if err != nil {
 			log.Print(err)
+			return
 		} else if msg.Message != KeepAliveMsg {
 			c.input <- msg
 		}
