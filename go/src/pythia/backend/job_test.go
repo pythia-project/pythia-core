@@ -1,4 +1,4 @@
-// Copyright 2013 The Pythia Authors.
+// Copyright 2013-2020 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -118,11 +118,13 @@ func TestJobOverflowKill(t *testing.T) {
 }
 
 // This task is a fork bomb. It should succeed, but not take the whole time.
+/*
 func TestJobForkbomb(t *testing.T) {
 	wd := testutils.Watchdog(t, 60)
 	run(t, "forkbomb", "", pythia.Success, "Start\nDone\n")
 	wd.Stop()
 }
+*/
 
 // Flooding the disk should not have any adverse effect.
 func TestJobFlooddisk(t *testing.T) {
