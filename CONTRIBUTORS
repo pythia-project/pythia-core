@@ -1,8 +1,8 @@
 # This is the official list of people who have contributed
 # to the Pythia project.
 # The AUTHORS file lists the copyright holders; this file
-# lists people. For example, UCL employees are listed here
-# but not in AUTHORS, because the UCL holds the copyright.
+# lists people. For example, UCLouvain employees are listed here
+# but not in AUTHORS, because the UCLouvain holds the copyright.
 
 # Names should be added to this file like so:
 # Name <email address>
@@ -10,6 +10,7 @@
 # Please keep the list sorted.
 
 Sébastien Combéfis <sebastien.combefis@pythia-project.org>
+Guillaume de Moffarts <guillaumedemoff@gmail.com>
 Vianney le Clément de Saint-Marcq <vianney.leclement@pythia-project.org>
-Charles Vandevoorde <charles.vandevoorde@pythia-project.org>
-Virginie Van den Schrieck <virginie.vandenschrieck@pythia-project.org>
+Charles Vandevoorde <charles.vandevoorde@hotmail.be>
+Virginie Van den Schrieck <v.vandenschrieck@gmail.com>

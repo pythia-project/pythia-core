@@ -35,7 +35,7 @@ Start by cloning the git repository and build the docker image:
     > git clone --recursive https://github.com/pythia-project/pythia-core.git
     > cd pythia-core
     > docker build -t pythia-core .
-    
+
 Once the image is successfully built, you can now start the image:
 
     > docker run -dit -p 8080:8080 --security-opt seccomp:unconfined --privileged pythia-core
@@ -43,13 +43,14 @@ Once the image is successfully built, you can now start the image:
     > mount /dev/shm
     > cd out && touch input.txt
     > ./pythia execute -input="input.txt" -tasks="tasks/hello-world.task"
-    
+
 You can obtain the container id using docker ps.
 You should see among others, ``Hello world!`` printed in your terminal.
 
 ## Contributors
 
 - Sébastien Combéfis
+- Guillaume de Moffarts
 - Vianney le Clément de Saint-Marcq
 - Charles Vandevoorde
 - Virginie Van den Schrieck
