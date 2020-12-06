@@ -29,7 +29,10 @@ GO_OUT_BINARIES := $(addprefix $(OUT_DIR)/,$(GO_INSTALL_BINARIES))
 
 $(call add_target,go,BUILD,Build go code)
 all: go
-go: $(GO_TARGETS) $(GO_OUT_BINARIES)
+go: go_deps $(GO_TARGETS) $(GO_OUT_BINARIES)
+
+go_deps:
+	go get -u github.com/gorilla/mux
 
 $(GO_TARGETS): $(GO_SOURCES)
 	$(GO) install $(addsuffix /...,$(GO_PACKAGES))
