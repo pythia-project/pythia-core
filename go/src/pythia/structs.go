@@ -90,6 +90,9 @@ const (
 	// (or another status if the job has ended meanwhile).
 	// Frontend->Queue, Queue->Pool
 	AbortMsg MsgType = "abort"
+
+	// Request status of the Queue
+	StatusMsg MsgType = "status"
 )
 
 // A Message is the basic entity that is sent between components. Messages are

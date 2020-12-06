@@ -83,6 +83,7 @@ func (server *Server) Run() {
 	}()
 	// Start the web server
 	http.HandleFunc("/execute", handler)
+	http.HandleFunc("/status", statusHandler)
 	log.Println("Server listening on", server.Port)
 	if err := http.ListenAndServe(fmt.Sprint(":", server.Port), nil); err != nil {
 		log.Fatal(err)
@@ -133,6 +134,30 @@ func handler(rw http.ResponseWriter, req *http.Request) {
 	if msg, ok := <-conn.Receive(); ok {
 		switch msg.Status {
 		case "success":
+			fmt.Fprintf(rw, msg.Output)
+		}
+		return
+	}
+	rw.WriteHeader(http.StatusInternalServerError)
+}
+
+// Handle for /status route to get the status of the Queue
+func statusHandler(rw http.ResponseWriter, req *http.Request) {
+	log.Println("Client connected: ", req.URL)
+	if req.Method != "GET" {
+		rw.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	// Connection to the pool
+	conn := pythia.DialRetry(pythia.QueueAddr)
+	defer conn.Close()
+	conn.Send(pythia.Message{
+		Message: pythia.StatusMsg,
+	})
+	if msg, ok := <-conn.Receive(); ok {
+		switch msg.Status {
+		case "success":
+			rw.Header().Set("Content-Type", "application/json")
 			fmt.Fprintf(rw, msg.Output)
 		}
 		return

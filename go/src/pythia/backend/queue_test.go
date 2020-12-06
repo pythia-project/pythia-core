@@ -16,7 +16,10 @@
 package backend
 
 import (
+	"encoding/json"
 	"pythia"
+	"reflect"
+	"strconv"
 	"testing"
 	"testutils"
 	"testutils/pytest"
@@ -111,6 +114,48 @@ func TestQueueSimple(t *testing.T) {
 		Status:  pythia.Success,
 		Output:  "Hi",
 	})
+	f.TearDown()
+}
+
+func TestQueueStatus(t *testing.T) {
+	f := SetupQueueFixture(t, 500, 2)
+	frontend := f.Clients[0]
+
+	frontend.Send(pythia.Message{
+		Message: pythia.StatusMsg,
+		Id:      "test",
+	})
+
+	// Removing Clients array from Message as this part will differ due to client list
+	// referencing the test client as a client but said client is no longer connected
+	// when the status is emitted
+	status := fillQueueStatus(f.Queue)
+	status.Clients = make([]*queueClient, 0)
+
+	msg := <-frontend.Conn.Receive()
+	if msg.Message != pythia.DoneMsg || msg.Id != "test" || msg.Status != pythia.Success {
+		t.Fatal("Message content mismatching")
+	}
+
+	var expected QueueStatus
+	expected.Clients = make([]*queueClient, 0)
+	json.Unmarshal([]byte(msg.Output), &expected)
+
+	// The content of the Waiting list is not compared because it's not efficient
+	// and it's not really interesting because the list is supposed to be empty
+	if expected.Capacity != status.Capacity ||
+		expected.Available != status.Available ||
+		!reflect.DeepEqual(expected.Jobs, status.Jobs) ||
+		!reflect.DeepEqual(expected.Waiting.Len(), status.Waiting.Len()) ||
+		!expected.CreationDate.Equal(status.CreationDate) {
+
+		t.Error("Capacity : " + strconv.FormatBool(expected.Capacity != status.Capacity))
+		t.Error("Available : " + strconv.FormatBool(expected.Available != status.Available))
+		t.Error("Jobs : " + strconv.FormatBool(!reflect.DeepEqual(expected.Jobs, status.Jobs)))
+		t.Error("Waiting : " + strconv.FormatBool(!reflect.DeepEqual(expected.Waiting, status.Waiting)))
+		t.Error("CreationDate : " + strconv.FormatBool(!expected.CreationDate.Equal(status.CreationDate)))
+	}
+
 	f.TearDown()
 }
 
